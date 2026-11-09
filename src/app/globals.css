@@ -1,26 +1,92 @@
 @import "tailwindcss";
 
+/*
+  Àmì design tokens.
+  Layout idea: soft grey canvas, white rounded panels, black pill buttons (from the landing reference),
+  with the deck's ember orange used sparingly for the brand mark and moments that matter (price, "Valid").
+*/
+@theme {
+  --color-canvas: #f2f1ef;
+  --color-surface: #ffffff;
+  --color-sunken: #f7f6f4;
+  --color-ink: #141014;
+  --color-ink-soft: #2a242b;
+  --color-muted: #6b6470;
+  --color-faint: #a39ca6;
+  --color-line: #e6e3e0;
+  --color-line-strong: #d4d0cc;
+
+  --color-ember: #e2552d;
+  --color-ember-ink: #b83e1c;
+  --color-ember-wash: #fcebe5;
+  --color-gold: #f2c14e;
+
+  --color-ok: #1b7a4b;
+  --color-ok-wash: #e3f3ea;
+  --color-warn: #9a6210;
+  --color-warn-wash: #fbf0da;
+  --color-bad: #b4361f;
+  --color-bad-wash: #fbe5e0;
+
+  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, "SF Mono", Menlo, monospace;
+
+  --shadow-float: 0 1px 2px rgb(20 16 20 / 0.04), 0 12px 32px -12px rgb(20 16 20 / 0.18);
+  --shadow-phone: 0 40px 80px -30px rgb(20 16 20 / 0.45), 0 18px 36px -18px rgb(20 16 20 / 0.3);
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: light;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  position: relative; /* Base UI: lets dialog backdrops cover the iOS 26 visual viewport */
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-feature-settings: "ss01";
+}
+
+/* Base UI: keeps portaled popups above page content */
+.root {
+  isolation: isolate;
+}
+
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+  letter-spacing: -0.025em;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Licence numbers and file fingerprints */
+.code {
+  font-family: var(--font-mono);
+  letter-spacing: 0.02em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media print {
+  body {
+    background: white;
+  }
+  .no-print {
+    display: none !important;
+  }
 }
