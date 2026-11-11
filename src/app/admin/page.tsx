@@ -2,7 +2,7 @@
 
 import { ShieldAlert } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { Button, LinkButton } from "@/components/ui/button";
 import { FormError } from "@/components/ui/field";
 import { Container, PageHeader, Spinner, Stat } from "@/components/ui/page";
@@ -13,6 +13,15 @@ import { useAuth } from "@/store/auth";
 import { TransactionsTable, UsersTable, VideosTable } from "./_components/admin-tables";
 
 export default function AdminPage() {
+  // The session query reads the current time, which Next.js can't prerender; the boundary defers it.
+  return (
+    <Suspense fallback={<Spinner />}>
+      <AdminView />
+    </Suspense>
+  );
+}
+
+function AdminView() {
   const { user, ready, logout } = useAuth();
   const router = useRouter();
 
