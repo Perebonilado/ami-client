@@ -88,7 +88,7 @@ export function BrowseView() {
           <h1 id="results-h" aria-live="polite">
             {loading ? "Videos" : query ? `${count} for “${query}”` : count}
           </h1>
-          <SortMenu value={sort} onChange={setSort} />
+          <SortMenu value={sort} onChange={setSort} searching={!!query} />
         </div>
 
         {error ? (
@@ -181,12 +181,14 @@ function CategoryRail({ active, onPick }: { active: string; onPick: (c: string) 
   );
 }
 
-function SortMenu({ value, onChange }: { value: Sort; onChange: (v: Sort) => void }) {
+function SortMenu({ value, onChange, searching }: { value: Sort; onChange: (v: Sort) => void; searching: boolean }) {
+  // With a search, the API returns best match first, so the default order is named for that
+  const label = (s: (typeof SORTS)[number]) => (s.value === "new" && searching ? "Best match" : s.label);
   return (
     <Menu.Root>
       <Menu.Trigger className="sort-btn" aria-label="Sort videos">
         <ArrowUpDown aria-hidden />
-        {SORTS.find((s) => s.value === value)!.label}
+        {label(SORTS.find((s) => s.value === value)!)}
       </Menu.Trigger>
       <Menu.Portal>
         <Menu.Positioner sideOffset={8} align="end" className="z-50 outline-none">
@@ -194,7 +196,7 @@ function SortMenu({ value, onChange }: { value: Sort; onChange: (v: Sort) => voi
             <Menu.RadioGroup value={value} onValueChange={(v) => onChange(v as Sort)}>
               {SORTS.map((s) => (
                 <Menu.RadioItem key={s.value} value={s.value} className="pop-opt" closeOnClick>
-                  {s.label}
+                  {label(s)}
                   <Check aria-hidden />
                 </Menu.RadioItem>
               ))}
