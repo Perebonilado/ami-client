@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Àmì · POV: your driver is also a pastor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Figtree:wght@400..700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="base.css">
+<style>
+  .avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; }
+  .nav-end .lib { font-weight: 600; }
+
+  /* ---------- Title ---------- */
+  .top { padding-top: clamp(28px, 4vw, 48px); }
+  .top h1 { font-size: clamp(32px, 3.6vw, 48px); line-height: 1.05; letter-spacing: -0.035em; }
+  .meta { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 14px; font-size: 16px; color: var(--ink-2); }
+  .meta img { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; }
+  .meta a { color: var(--ink); font-weight: 600; }
+  .meta a:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+  .layout { display: grid; grid-template-columns: minmax(0, 1fr) 400px; gap: clamp(40px, 6vw, 88px); align-items: start; margin-top: 28px; }
+
+  /* ---------- Player ---------- */
+  .player { position: relative; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 24px; background: #0e0d10; isolation: isolate; }
+  .player video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; }
+  .player::after { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, transparent 62%, rgb(10 8 12 / 0.55)); opacity: 0; transition: opacity 0.3s; }
+  .player:hover::after, .player.is-paused::after, .player:focus-within::after { opacity: 1; }
+  .bug { position: absolute; top: 18px; right: 20px; display: inline-flex; align-items: baseline; gap: 8px; color: rgb(255 255 255 / 0.9); font: 500 13px/1 var(--body); text-shadow: 0 0 1px rgb(0 0 0 / 0.35), 0 1px 10px rgb(0 0 0 / 0.45); pointer-events: none; }
+  .bug .logo { font-size: 20px; }
+  .bug .logo .m::after { background: rgb(255 255 255 / 0.9); box-shadow: 0 0 6px rgb(0 0 0 / 0.35); }
+  .controls { position: absolute; left: 16px; right: 16px; bottom: 14px; display: flex; align-items: center; gap: 14px; color: #fff; opacity: 0; transform: translateY(4px); transition: opacity 0.3s, transform 0.4s var(--ease); }
+  .player:hover .controls, .player.is-paused .controls, .player:focus-within .controls { opacity: 1; transform: none; }
+  .ctl { width: 40px; height: 40px; flex: none; border: 0; border-radius: 50%; display: grid; place-items: center; cursor: pointer; color: #fff; background: rgb(255 255 255 / 0.16); backdrop-filter: blur(8px); transition: background-color 0.2s; }
+  .ctl:hover { background: rgb(255 255 255 / 0.28); }
+  .ctl svg { width: 16px; height: 16px; }
+  .ctl .fill { fill: currentColor; stroke: none; }
+  .time { font: 500 13px/1 var(--body); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .track { position: relative; flex: 1; height: 4px; border-radius: 4px; background: rgb(255 255 255 / 0.28); cursor: pointer; }
+  .track span { position: absolute; inset: 0 auto 0 0; width: 0; border-radius: inherit; background: #fff; }
+  .about { margin-top: 24px; max-width: 60ch; font-size: 17px; line-height: 1.6; }
+
+  /* ---------- Licence calculator ---------- */
+  .lic { position: sticky; top: 100px; padding: 28px 24px 24px; border-radius: 24px; background: #fff; box-shadow: 0 0 0 1px #e6e5ec, 0 12px 32px -16px rgb(15 15 16 / 0.22); }
+  .price { font: 700 40px/1 var(--head); letter-spacing: -0.035em; font-variant-numeric: tabular-nums; }
+  .summary { margin-top: 8px; font-size: 15px; color: var(--ink-2); }
+  .q { margin-top: 24px; }
+  .lbl { display: block; margin-bottom: 10px; font: 600 14px/1 var(--body); }
+
+  .seg { position: relative; display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; padding: 4px; border-radius: 14px; background: var(--wash); isolation: isolate; }
+  .seg button { height: 42px; border: 0; border-radius: 10px; background: none; cursor: pointer; font: 600 14px/1 var(--body); color: var(--ink-2); transition: color 0.2s; white-space: nowrap; }
+  .seg button:hover { color: var(--ink); }
+  .seg button[aria-checked="true"] { color: var(--ink); }
+  .seg .ind { position: absolute; z-index: -1; top: 4px; bottom: 4px; left: 0; border-radius: 10px; background: #fff; box-shadow: 0 1px 2px rgb(15 15 16 / 0.1), 0 2px 8px -2px rgb(15 15 16 / 0.12); transition: transform 0.35s var(--ease), width 0.35s var(--ease); }
+
+  /* Trim window over the clip */
+  .range { display: grid; grid-template-rows: 1fr; margin-top: 14px; transition: grid-template-rows 0.4s var(--ease), margin-top 0.4s var(--ease), opacity 0.3s; }
+  .range.is-off { grid-template-rows: 0fr; margin-top: 0; opacity: 0; }
+  .range > div { overflow: hidden; min-height: 0; }
+  .rtrack { position: relative; height: 56px; margin: 2px 0; border-radius: 12px; background: #2a2730 center / cover; touch-action: none; user-select: none; }
+  .strip { position: absolute; inset: 0; display: flex; overflow: hidden; border-radius: 12px; opacity: 0; transition: opacity 0.4s; }
+  .strip.is-ready { opacity: 1; }
+  .strip canvas { flex: 1; min-width: 0; height: 100%; display: block; object-fit: cover; }
+  .rdim { position: absolute; top: 0; bottom: 0; background: rgb(255 255 255 / 0.72); pointer-events: none; }
+  .rdim.l { left: 0; border-radius: 12px 0 0 12px; }
+  .rdim.r { right: 0; border-radius: 0 12px 12px 0; }
+  .rsel { position: absolute; top: 0; bottom: 0; border-radius: 12px; box-shadow: inset 0 0 0 3px var(--ink); cursor: grab; }
+  .rsel:active { cursor: grabbing; }
+  .h { position: absolute; top: 0; bottom: 0; width: 16px; display: grid; place-items: center; background: var(--ink); cursor: ew-resize; outline: none; }
+  .h::after { content: ""; width: 2px; height: 18px; border-radius: 2px; background: rgb(255 255 255 / 0.85); }
+  .h.l { left: 0; border-radius: 12px 0 0 12px; }
+  .h.r { right: 0; border-radius: 0 12px 12px 0; }
+  .h:focus-visible { box-shadow: 0 0 0 3px var(--brand); }
+  .ph { position: absolute; top: 6px; bottom: 6px; width: 2px; margin-left: -1px; border-radius: 2px; background: #fff; box-shadow: 0 0 6px rgb(0 0 0 / 0.5); pointer-events: none; }
+  .rmeta { display: flex; justify-content: space-between; margin-top: 10px; font-size: 14px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+  .rmeta b { color: var(--ink); font-weight: 600; }
+
+  .lic .btn { width: 100%; margin-top: 28px; height: 54px; font-size: 16px; }
+
+  /* ---------- More clips ---------- */
+  .more-row { margin-top: clamp(80px, 9vw, 120px); }
+  .more-row .head { display: flex; align-items: baseline; justify-content: space-between; }
+  .more-row h2 { font: 700 26px/1.2 var(--head); letter-spacing: -0.025em; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-top: 24px; }
+  .card { display: block; outline: none; }
+  .thumb { position: relative; aspect-ratio: 4 / 5; overflow: hidden; isolation: isolate; border-radius: 20px; background: #141216; transition: transform 0.45s var(--ease), box-shadow 0.45s var(--ease); }
+  .card:hover .thumb, .card:focus-visible .thumb { transform: translateY(-4px); box-shadow: 0 2px 4px rgb(15 15 16 / 0.08), 0 24px 40px -22px rgb(15 15 16 / 0.45); }
+  .thumb video { position: absolute; inset: 0; z-index: -2; width: 100%; height: 100%; object-fit: cover; transform: scale(1.02); transition: transform 1.2s var(--ease); }
+  .card.is-playing .thumb video { transform: scale(1.07); }
+  .thumb::after { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, transparent 74%, rgb(10 8 12 / 0.5)); }
+  .dur { position: absolute; right: 14px; bottom: 12px; font: 600 13px/1 var(--body); font-variant-numeric: tabular-nums; color: #fff; text-shadow: 0 1px 6px rgb(0 0 0 / 0.35); }
+  .info { margin-top: 14px; }
+  .info h3 { font: 600 16px/1.35 var(--body); letter-spacing: -0.005em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .info .who { display: flex; align-items: center; gap: 5px; margin-top: 2px; font-size: 15px; color: var(--ink-2); }
+  .tick { width: 16px; height: 16px; flex: none; color: var(--brand); }
+
+  .buybar { display: none; }
+  .foot { margin-top: clamp(96px, 10vw, 140px); }
+
+  @media (max-width: 960px) {
+    .layout { grid-template-columns: 1fr; gap: 32px; }
+    .lic { position: static; }
+    .grid { grid-template-columns: 1fr 1fr; gap: 28px 12px; }
+  }
+  @media (max-width: 860px) {
+    .player { border-radius: 18px; }
+    .controls { opacity: 1; transform: none; }
+    .player::after { opacity: 1; }
+    .info h3 { font-size: 15px; white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+    .buybar {
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; display: flex; align-items: center; justify-content: space-between; gap: 16px;
+      padding: 12px var(--gutter) calc(12px + env(safe-area-inset-bottom)); background: #fff; box-shadow: 0 -1px 0 var(--line);
+      transition: transform 0.35s var(--ease);
+    }
+    .buybar.is-hidden { transform: translateY(110%); }
+    .buybar b { display: block; font: 700 20px/1.2 var(--head); letter-spacing: -0.02em; }
+    .buybar span { font-size: 14px; color: var(--ink-2); }
+    .buybar .btn { height: 48px; padding: 0 26px; }
+    .switch { bottom: 92px; }
+  }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 8h16M4 16h16"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path class="fill" d="M7 4.5v15a1 1 0 0 0 1.5.86l12.5-7.5a1 1 0 0 0 0-1.72L8.5 3.64A1 1 0 0 0 7 4.5Z"/></symbol>
+  <symbol id="i-pause" viewBox="0 0 24 24"><rect class="fill" x="6" y="4.5" width="4" height="15" rx="1.2"/><rect class="fill" x="14" y="4.5" width="4" height="15" rx="1.2"/></symbol>
+  <symbol id="i-muted" viewBox="0 0 24 24"><path d="M11 5 6 9H2v6h4l5 4V5Z"/><path d="m22 9-6 6M16 9l6 6"/></symbol>
+  <symbol id="i-sound" viewBox="0 0 24 24"><path d="M11 5 6 9H2v6h4l5 4V5Z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></symbol>
+  <symbol id="i-full" viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"/></symbol>
+  <symbol id="i-tick" viewBox="0 0 24 24"><path d="M12 2.5 14.6 4.3l3.1-.1 1 3 2.6 1.8-1 3 1 3-2.6 1.8-1 3-3.1-.1L12 21.5l-2.6-1.8-3.1.1-1-3-2.6-1.8 1-3-1-3 2.6-1.8 1-3 3.1.1Z" fill="currentColor" stroke="none"/><path d="m8.5 12 2.3 2.3 4.7-4.7" stroke="#fff" stroke-width="2.2" fill="none"/></symbol>
+</svg>
+
+<header class="nav">
+  <div class="wrap nav-in">
+    <a class="logo" href="d.html" aria-label="Àmì home"><span class="m m-a">A</span>m<span class="m m-i">ı</span></a>
+    <nav class="nav-links" aria-label="Main"><a href="browse.html">Browse</a><a href="d.html#creators">For creators</a><a href="check.html">Check a licence</a></nav>
+    <div class="nav-end">
+      <a class="login lib" href="library.html">My library</a>
+      <img class="avatar" src="https://images.unsplash.com/photo-1697383904932-94304530a3dd?auto=format&fit=crop&crop=faces&w=96&h=96&q=75" alt="Your account">
+      <button class="nav-menu" aria-label="Open menu"><svg class="icon" style="width:22px;height:22px"><use href="#i-menu"/></svg></button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="top">
+    <h1>POV: your driver is also a pastor</h1>
+    <p class="meta">
+      <img src="https://images.unsplash.com/photo-1586474714722-d1f9e551cf34?auto=format&fit=crop&crop=faces&w=64&h=64&q=75" alt="">
+      <a href="#">Chinedu Okafor</a><span>·</span><span>Comedy</span><span>·</span><span id="len">0:16</span>
+    </p>
+  </section>
+
+  <div class="layout">
+    <div>
+      <div class="player is-paused" id="player">
+        <video id="vid" muted loop playsinline preload="auto"
+          poster="https://images.pexels.com/videos/4994037/pexels-photo-4994037.jpeg?auto=compress&cs=tinysrgb&w=1400"
+          src="https://videos.pexels.com/video-files/4994037/4994037-hd_1280_720_25fps.mp4"></video>
+        <span class="bug" aria-hidden="true"><span class="logo"><span class="m m-a">A</span>m<span class="m m-i">ı</span></span>Preview</span>
+        <div class="controls">
+          <button class="ctl" id="pp" type="button" aria-label="Play"><svg><use href="#i-play"/></svg></button>
+          <span class="time" id="time">0:00 / 0:16</span>
+          <div class="track" id="track" aria-hidden="true"><span id="bar"></span></div>
+          <button class="ctl" id="mute" type="button" aria-label="Turn sound on"><svg class="icon"><use href="#i-muted"/></svg></button>
+          <button class="ctl" id="full" type="button" aria-label="Full screen"><svg class="icon"><use href="#i-full"/></svg></button>
+        </div>
+      </div>
+      <p class="about">You booked a ride. You got a sermon, a prayer and a request to sow a seed.</p>
+    </div>
+
+    <aside class="lic" id="lic" aria-label="License this video">
+      <p class="price" id="price" aria-live="polite">₦5,000</p>
+      <p class="summary" id="summary">Whole video · 1 month</p>
+
+      <div class="q">
+        <span class="lbl" id="what-l">What do you need?</span>
+        <div class="seg" role="radiogroup" aria-labelledby="what-l" id="what">
+          <button type="button" role="radio" aria-checked="true" data-v="whole">Whole video</button>
+          <button type="button" role="radio" aria-checked="false" data-v="part">Part of it</button>
+          <span class="ind" aria-hidden="true"></span>
+        </div>
+        <div class="range is-off" id="range" aria-hidden="true">
+          <div>
+            <div class="rtrack" id="rtrack" style="background-image:url('https://images.pexels.com/videos/4994037/pexels-photo-4994037.jpeg?auto=compress&cs=tinysrgb&w=800')">
+              <div class="strip" id="strip" aria-hidden="true"></div>
+              <span class="rdim l" id="dim-l"></span><span class="rdim r" id="dim-r"></span>
+              <div class="rsel" id="rsel">
+                <span class="h l" id="h-l" role="slider" tabindex="0" aria-label="Start of the part"></span>
+                <span class="h r" id="h-r" role="slider" tabindex="0" aria-label="End of the part"></span>
+              </div>
+              <span class="ph" id="ph"></span>
+            </div>
+            <p class="rmeta"><span id="rtimes">0:04 – 0:10</span><b id="rlen">6 seconds</b></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="q">
+        <span class="lbl" id="dur-l">How long?</span>
+        <div class="seg" role="radiogroup" aria-labelledby="dur-l" id="dur">
+          <button type="button" role="radio" aria-checked="true" data-i="0">1 month</button>
+          <button type="button" role="radio" aria-checked="false" data-i="1">3 months</button>
+          <button type="button" role="radio" aria-checked="false" data-i="2">1 year</button>
+          <button type="button" role="radio" aria-checked="false" data-i="3">Forever</button>
+          <span class="ind" aria-hidden="true"></span>
+        </div>
+      </div>
+
+      <a class="btn btn-ink" id="pay" href="pay.html">Continue to payment</a>
+    </aside>
+  </div>
+
+  <section class="more-row" aria-labelledby="more-h">
+    <div class="head">
+      <h2 id="more-h">More comedy</h2>
+      <a class="link" href="browse.html?cat=Comedy">See all <svg class="icon"><use href="#i-arrow"/></svg></a>
+    </div>
+    <div class="grid" id="more"></div>
+  </section>
+</main>
+
+<div class="buybar" id="buybar">
+  <div><b id="bb-price">₦5,000</b><span id="bb-summary">Whole video · 1 month</span></div>
+  <a class="btn btn-ink" href="#lic">License</a>
+</div>
+
+<footer class="foot">
+  <div class="wrap foot-in">
+    <a class="logo" href="d.html" aria-label="Àmì home"><span class="m m-a">A</span>m<span class="m m-i">ı</span></a>
+    <span>Your work. Your mark. Your money.</span>
+    <nav aria-label="Footer"><a href="browse.html">Browse</a><a href="d.html#creators">For creators</a><a href="check.html">Check a licence</a><a href="#">Help</a></nav>
+  </div>
+</footer>
+
+<nav class="switch" aria-label="Mockup screens"><a href="d.html">Home</a><a href="browse.html">Browse</a><a href="video.html" aria-current="page">Video</a><a href="upload.html">Upload</a></nav>
+
+<script>
+  const fmt = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
+
+  /* ---------- Player ---------- */
+  const player = document.getElementById("player"), v = document.getElementById("vid");
+  const pp = document.getElementById("pp"), mute = document.getElementById("mute"), bar = document.getElementById("bar"), time = document.getElementById("time");
+  const sync = () => {
+    player.classList.toggle("is-paused", v.paused);
+    pp.innerHTML = `<svg><use href="#i-${v.paused ? "play" : "pause"}"/></svg>`;
+    pp.setAttribute("aria-label", v.paused ? "Play" : "Pause");
+  };
+  pp.addEventListener("click", () => (v.paused ? v.play() : v.pause()));
+  v.addEventListener("play", sync); v.addEventListener("pause", sync);
+  document.getElementById("track").addEventListener("click", (e) => { const r = e.currentTarget.getBoundingClientRect(); if (v.duration) v.currentTime = ((e.clientX - r.left) / r.width) * v.duration; });
+  mute.addEventListener("click", () => { v.muted = !v.muted; mute.innerHTML = `<svg class="icon"><use href="#i-${v.muted ? "muted" : "sound"}"/></svg>`; mute.setAttribute("aria-label", v.muted ? "Turn sound on" : "Turn sound off"); });
+  document.getElementById("full").addEventListener("click", () => (document.fullscreenElement ? document.exitFullscreen() : player.requestFullscreen?.()));
+  if (!matchMedia("(prefers-reduced-motion: reduce)").matches) v.play().catch(() => {});
+
+  /* ---------- Licence calculator ----------
+     The creator sets one price: the whole video for 1 month. A part costs its share of the video
+     (never less than a quarter), and longer licences multiply it. Everything rounds up to ₦500. */
+  const BASE = 5000;
+  const DURS = [{ name: "1 month", m: 1 }, { name: "3 months", m: 2 }, { name: "1 year", m: 3 }, { name: "Forever", m: 4, label: "forever" }];
+  const MIN_PART = 2; // seconds
+  const st = { what: "whole", dur: 0, start: 4, end: 10, total: 16 };
+  const naira = (n) => "₦" + n.toLocaleString("en-NG");
+  const up500 = (n) => Math.ceil(n / 500) * 500;
+  const price = () => {
+    const share = st.what === "whole" ? 1 : Math.max(0.25, (st.end - st.start) / st.total);
+    return Math.max(1000, up500(BASE * share * DURS[st.dur].m));
+  };
+  const secs = (n) => `${Math.round(n)} second${Math.round(n) === 1 ? "" : "s"}`;
+
+  function paint() {
+    const d = DURS[st.dur], len = st.end - st.start;
+    const summary = `${st.what === "whole" ? "Whole video" : secs(len)} · ${d.label || d.name}`;
+    ["price", "bb-price"].forEach((id) => (document.getElementById(id).textContent = naira(price())));
+    ["summary", "bb-summary"].forEach((id) => (document.getElementById(id).textContent = summary));
+    // trim window
+    const L = (st.start / st.total) * 100, R = (st.end / st.total) * 100;
+    Object.assign(document.getElementById("rsel").style, { left: `${L}%`, width: `${R - L}%` });
+    document.getElementById("dim-l").style.width = `${L}%`;
+    document.getElementById("dim-r").style.width = `${100 - R}%`;
+    document.getElementById("rtimes").textContent = `${fmt(st.start)} – ${fmt(st.end)}`;
+    document.getElementById("rlen").textContent = secs(len);
+    document.getElementById("h-l").setAttribute("aria-valuetext", fmt(st.start));
+    document.getElementById("h-r").setAttribute("aria-valuetext", fmt(st.end));
+  }
+
+  // Segmented controls with a sliding highlight
+  function segment(el, onPick) {
+    const ind = el.querySelector(".ind"), btns = [...el.querySelectorAll("button")];
+    const place = () => { const b = btns.find((x) => x.getAttribute("aria-checked") === "true"); ind.style.width = `${b.offsetWidth}px`; ind.style.transform = `translateX(${b.offsetLeft}px)`; };
+    btns.forEach((b) => b.addEventListener("click", () => { btns.forEach((x) => x.setAttribute("aria-checked", String(x === b))); place(); onPick(b); }));
+    addEventListener("resize", place); requestAnimationFrame(place);
+    if (document.fonts) document.fonts.ready.then(place);
+  }
+  segment(document.getElementById("what"), (b) => {
+    st.what = b.dataset.v;
+    const range = document.getElementById("range");
+    range.classList.toggle("is-off", st.what === "whole");
+    range.setAttribute("aria-hidden", String(st.what === "whole"));
+    if (st.what === "part" && v.duration) v.currentTime = st.start;
+    if (st.what === "part") buildStrip();
+    paint();
+  });
+  segment(document.getElementById("dur"), (b) => { st.dur = +b.dataset.i; paint(); });
+
+  // Filmstrip: grab frames from across the clip with a hidden copy of the video
+  let stripBuilt = false;
+  async function buildStrip() {
+    if (stripBuilt) return; stripBuilt = true;
+    const strip = document.getElementById("strip"), n = innerWidth < 600 ? 6 : 8;
+    const src = document.createElement("video");
+    Object.assign(src, { muted: true, playsInline: true, preload: "auto", src: "https://videos.pexels.com/video-files/4994037/4994037-sd_960_540_25fps.mp4" });
+    await new Promise((r) => src.addEventListener("loadeddata", r, { once: true }));
+    for (let i = 0; i < n; i++) {
+      src.currentTime = (src.duration * (i + 0.5)) / n;
+      await new Promise((r) => src.addEventListener("seeked", r, { once: true }));
+      const c = document.createElement("canvas"); c.width = 160; c.height = 90;
+      c.getContext("2d").drawImage(src, 0, 0, 160, 90);
+      strip.appendChild(c);
+    }
+    strip.classList.add("is-ready");
+  }
+
+  // Trim window: drag either handle, or drag the window itself
+  const rtrack = document.getElementById("rtrack");
+  function drag(kind, e) {
+    e.preventDefault(); e.stopPropagation();
+    const r = rtrack.getBoundingClientRect(), x0 = e.clientX, s0 = st.start, e0 = st.end;
+    const move = (ev) => {
+      const dt = ((ev.clientX - x0) / r.width) * st.total;
+      if (kind === "l") st.start = Math.min(Math.max(0, s0 + dt), st.end - MIN_PART);
+      else if (kind === "r") st.end = Math.max(Math.min(st.total, e0 + dt), st.start + MIN_PART);
+      else { const len = e0 - s0; st.start = Math.min(Math.max(0, s0 + dt), st.total - len); st.end = st.start + len; }
+      if (v.duration) v.currentTime = kind === "r" ? Math.max(st.start, st.end - 1) : st.start;
+      paint();
+    };
+    const stop = () => { removeEventListener("pointermove", move); removeEventListener("pointerup", stop); };
+    addEventListener("pointermove", move); addEventListener("pointerup", stop);
+  }
+  document.getElementById("h-l").addEventListener("pointerdown", (e) => drag("l", e));
+  document.getElementById("h-r").addEventListener("pointerdown", (e) => drag("r", e));
+  document.getElementById("rsel").addEventListener("pointerdown", (e) => drag("move", e));
+  [["h-l", "start"], ["h-r", "end"]].forEach(([id, k]) => document.getElementById(id).addEventListener("keydown", (e) => {
+    const step = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0; if (!step) return;
+    e.preventDefault();
+    if (k === "start") st.start = Math.min(Math.max(0, st.start + step), st.end - MIN_PART);
+    else st.end = Math.max(Math.min(st.total, st.end + step), st.start + MIN_PART);
+    paint();
+  }));
+
+  // While "Part of it" is chosen, the player loops just that part and a playhead runs through the window
+  v.addEventListener("loadedmetadata", () => {
+    st.total = Math.round(v.duration * 10) / 10;
+    st.end = Math.min(st.end, st.total);
+    document.getElementById("len").textContent = fmt(v.duration);
+    paint();
+  });
+  v.addEventListener("timeupdate", () => {
+    if (!v.duration) return;
+    if (st.what === "part" && (v.currentTime >= st.end || v.currentTime < st.start - 0.25)) v.currentTime = st.start;
+    bar.style.width = `${(v.currentTime / v.duration) * 100}%`;
+    time.textContent = `${fmt(v.currentTime)} / ${fmt(v.duration)}`;
+    document.getElementById("ph").style.left = `${(v.currentTime / v.duration) * 100}%`;
+  });
+  paint();
+
+  // Phone: hide the pinned price bar while the calculator itself is on screen
+  new IntersectionObserver(([e]) => document.getElementById("buybar").classList.toggle("is-hidden", e.isIntersecting), { threshold: 0.2 })
+    .observe(document.getElementById("lic"));
+
+  /* ---------- More comedy (same cards as Browse) ---------- */
+  const P = "https://images.pexels.com/videos/", V = "https://videos.pexels.com/video-files/";
+  const MORE = [
+    { t: "When the light comes back at 3am", by: "Tolu Adeyemi", ok: 1, d: "0:58", img: "8496469/adult-bald-black-model-business-8496469", vid: "8496469/8496469-sd_960_540_25fps.mp4" },
+    { t: "Danfo conductor vs. ₦50 change", by: "Chinedu Okafor", d: "1:03", img: "4994324/pexels-photo-4994324", vid: "4994324/4994324-sd_540_960_25fps.mp4" },
+    { t: "My mum when I say I’m not hungry", by: "Tolu Adeyemi", ok: 1, d: "0:42", img: "7594690/access-adult-african-american-analyzing-7594690", vid: "7594690/7594690-sd_960_540_25fps.mp4" },
+    { t: "Landlord’s ‘small increase’", by: "Chinedu Okafor", d: "0:51", img: "8360259/pexels-photo-8360259", vid: "8360259/8360259-sd_960_506_25fps.mp4" },
+  ];
+  const more = document.getElementById("more");
+  more.innerHTML = MORE.map((c) => `
+    <a class="card" href="video.html">
+      <div class="thumb"><video muted loop playsinline preload="none" poster="${P}${c.img}.jpeg?auto=compress&cs=tinysrgb&fit=crop&w=600&h=750" data-src="${V}${c.vid}"></video><span class="dur">${c.d}</span></div>
+      <div class="info"><h3>${c.t}</h3><p class="who"><span>${c.by}</span>${c.ok ? '<svg class="tick" aria-label="Verified creator"><use href="#i-tick"/></svg>' : ""}</p></div>
+    </a>`).join("");
+  const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const finePointer = matchMedia("(hover: hover) and (pointer: fine)").matches;
+  [...more.children].forEach((card) => {
+    const cv = card.querySelector("video");
+    card.play = () => { if (reduceMotion) return; if (!cv.src) cv.src = cv.dataset.src; cv.play().catch(() => {}); };
+    card.stop = () => cv.pause();
+    cv.addEventListener("playing", () => card.classList.add("is-playing"));
+    cv.addEventListener("pause", () => card.classList.remove("is-playing"));
+    if (finePointer) { card.addEventListener("mouseenter", card.play); card.addEventListener("mouseleave", card.stop); card.addEventListener("focus", card.play); card.addEventListener("blur", card.stop); }
+  });
+  if (!finePointer && !reduceMotion && "IntersectionObserver" in window) {
+    const io = new IntersectionObserver((es) => es.forEach((e) => (e.intersectionRatio >= 0.75 ? e.target.play() : e.target.stop())), { threshold: [0, 0.75] });
+    [...more.children].forEach((c) => io.observe(c));
+  }
+</script>
+<script src="screens.js"></script>
+</body>
+</html>

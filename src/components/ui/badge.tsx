@@ -29,6 +29,7 @@ export function VideoStatusBadge({ status }: { status: VideoStatus }) {
 export function LicenceStatusBadge({ status }: { status: LicenceStatus }) {
   if (status === "active") return <Badge tone="ok">Active</Badge>;
   if (status === "expired") return <Badge tone="neutral">Expired</Badge>;
+  if (status === "cancelled") return <Badge tone="neutral">Cancelled</Badge>;
   return <Badge tone="warn">Awaiting payment</Badge>;
 }
 
@@ -39,9 +40,10 @@ export function CheckStatusBadge({ status }: { status: CheckStatus }) {
 }
 
 export function PaymentStatusBadge({ status }: { status: PaymentStatus }) {
-  if (status === "paid") return <Badge tone="ok">Paid</Badge>;
+  if (status === "paid" || status === "overpaid") return <Badge tone="ok">Paid</Badge>;
   if (status === "failed") return <Badge tone="bad">Failed</Badge>;
-  return <Badge tone="warn">Initiated</Badge>;
+  if (status === "partial") return <Badge tone="warn">Part paid</Badge>;
+  return <Badge tone="warn">Waiting</Badge>;
 }
 
 export function UnverifiedTag() {

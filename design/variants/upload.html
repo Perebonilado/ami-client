@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Àmì · Upload a video</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Figtree:wght@400..700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="base.css">
+<style>
+  .avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; }
+  .nav-end .lib { font-weight: 600; }
+  [hidden] { display: none !important; }
+
+  .page { padding-top: clamp(32px, 5vw, 64px); }
+  .page-head h1 { font-size: clamp(34px, 4vw, 52px); line-height: 1.02; }
+  .page-head p { margin-top: 12px; font-size: 18px; color: var(--ink-2); }
+
+  /* ---------- Step 1: drop a file ---------- */
+  .drop {
+    position: relative; display: grid; place-items: center; margin-top: 36px; min-height: 440px; padding: 40px 24px;
+    border-radius: 28px; background: var(--wash); text-align: center; cursor: pointer;
+    transition: background-color 0.25s, box-shadow 0.25s;
+  }
+  .drop:hover { background: #f1f0f6; }
+  .drop.is-over { background: var(--brand-wash); box-shadow: inset 0 0 0 2px var(--brand); }
+  .drop input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+  .drop-icon { width: 72px; height: 72px; margin: 0 auto; border-radius: 50%; display: grid; place-items: center; background: #fff; box-shadow: 0 8px 24px -12px rgb(15 15 16 / 0.3); transition: transform 0.4s var(--ease); }
+  .drop:hover .drop-icon, .drop.is-over .drop-icon { transform: translateY(-4px); }
+  .drop-icon svg { width: 28px; height: 28px; }
+  .drop h2 { margin-top: 24px; font-size: clamp(24px, 2.4vw, 30px); line-height: 1.15; }
+  .drop .hint { margin-top: 8px; font-size: 16px; color: var(--ink-2); }
+  .drop .btn { margin-top: 28px; pointer-events: none; }
+  .drop .err { margin-top: 16px; font-size: 15px; color: #a33a1c; }
+
+  /* ---------- Step 2: details ---------- */
+  .edit { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: clamp(40px, 6vw, 88px); align-items: start; margin-top: 36px; }
+  .preview { position: sticky; top: 100px; }
+  .preview video { cursor: pointer; }
+  .preview video { display: block; width: 100%; aspect-ratio: 16 / 9; border-radius: 24px; background: #0e0d10; object-fit: contain; }
+  .file { display: flex; align-items: center; gap: 12px; margin-top: 16px; font-size: 15px; color: var(--ink-2); }
+  .file b { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink); font-weight: 600; }
+  .file button { margin-left: auto; flex: none; border: 0; background: none; padding: 6px 0; cursor: pointer; font: 600 15px/1 var(--body); color: var(--ink); text-decoration: underline; text-underline-offset: 4px; }
+
+  .form { display: grid; gap: 28px; }
+  .f label, .f .lbl { display: block; margin-bottom: 10px; font: 600 15px/1 var(--body); }
+  .f .opt { font-weight: 400; color: var(--ink-2); }
+  .input, .area {
+    width: 100%; border: 0; border-radius: 14px; background: #fff; box-shadow: inset 0 0 0 1px #d9d8e0;
+    font: 400 16px/1.5 var(--body); color: var(--ink); outline: none; transition: box-shadow 0.2s;
+  }
+  .input { height: 52px; padding: 0 16px; }
+  .area { padding: 14px 16px; resize: vertical; min-height: 104px; }
+  .input::placeholder, .area::placeholder { color: #9a99a3; }
+  .input:hover, .area:hover { box-shadow: inset 0 0 0 1px #b9b8c2; }
+  .input:focus, .area:focus { box-shadow: inset 0 0 0 2px var(--ink); }
+  .f.has-err .input, .f.has-err .area { box-shadow: inset 0 0 0 2px #c2462a; }
+  .help { margin-top: 8px; font-size: 14px; color: var(--ink-2); }
+  .ferr { margin-top: 8px; font-size: 14px; color: #a33a1c; }
+
+  /* Category: the same icons as Browse */
+  .cats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+  .cat {
+    display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 14px 4px 12px; border: 0; border-radius: 14px;
+    background: #fff; box-shadow: inset 0 0 0 1px #d9d8e0; cursor: pointer; font: 600 13px/1 var(--body); color: var(--ink-2);
+    transition: box-shadow 0.2s, color 0.2s, background-color 0.2s;
+  }
+  .cat svg { width: 24px; height: 24px; stroke-width: 1.6; }
+  .cat:hover { color: var(--ink); box-shadow: inset 0 0 0 1px #b9b8c2; }
+  .cat[aria-checked="true"] { color: var(--ink); box-shadow: inset 0 0 0 2px var(--ink); background: var(--wash); }
+  .f.has-err .cat { box-shadow: inset 0 0 0 1px #c2462a; }
+
+  .money { position: relative; }
+  .money span { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); font: 600 16px/1 var(--body); color: var(--ink-2); }
+  .money .input { padding-left: 36px; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+  .f .check { display: grid; margin-bottom: 0; font: 400 15px/1.5 var(--body); }
+  .check { display: grid; grid-template-columns: 24px 1fr; gap: 14px; align-items: start; cursor: pointer; font-size: 15px; line-height: 1.5; }
+  .check input { appearance: none; width: 24px; height: 24px; margin: 0; border-radius: 7px; background: #fff; box-shadow: inset 0 0 0 1.5px #b9b8c2; cursor: pointer; display: grid; place-items: center; transition: background-color 0.2s, box-shadow 0.2s; }
+  .check input:checked { background: var(--ink); box-shadow: none; }
+  .check input:checked::after { content: ""; width: 7px; height: 12px; margin-top: -3px; border: solid #fff; border-width: 0 2.5px 2.5px 0; transform: rotate(45deg); }
+  .f.has-err .check input { box-shadow: inset 0 0 0 2px #c2462a; }
+
+  .form .btn { width: 100%; height: 56px; font-size: 16px; }
+
+  /* ---------- Step 3: publishing, then live ---------- */
+  .done { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: clamp(40px, 6vw, 88px); align-items: center; margin-top: 36px; }
+  .done video { display: block; width: 100%; aspect-ratio: 16 / 9; border-radius: 24px; background: #0e0d10; object-fit: contain; }
+  .stage h2 { font-size: clamp(30px, 3.4vw, 44px); line-height: 1.05; }
+  .stage p { margin-top: 12px; font-size: 18px; color: var(--ink-2); }
+  .progress { height: 8px; margin-top: 28px; border-radius: 8px; background: var(--wash); overflow: hidden; }
+  .progress span { display: block; height: 100%; width: 0; border-radius: inherit; background: var(--ink); transition: width 0.3s linear; }
+  .stage .pct { margin-top: 12px; font-size: 15px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+  .stage .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
+
+  .foot { margin-top: clamp(96px, 10vw, 140px); }
+
+  @media (max-width: 960px) {
+    .edit, .done { grid-template-columns: 1fr; gap: 28px; }
+    .preview { position: static; }
+  }
+  @media (max-width: 860px) {
+    .drop { min-height: 360px; border-radius: 22px; }
+    .preview video, .done video { border-radius: 18px; }
+    .cats { grid-template-columns: repeat(3, 1fr); }
+  }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 8h16M4 16h16"/></symbol>
+  <symbol id="i-up" viewBox="0 0 24 24"><path d="M12 16V4M6 10l6-6 6 6"/><path d="M4 20h16"/></symbol>
+  <symbol id="c-comedy" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M18 13a6 6 0 0 1-6 5 6 6 0 0 1-6-5h12Z"/><path d="M9 9h.01M15 9h.01"/></symbol>
+  <symbol id="c-food" viewBox="0 0 24 24"><path d="M2 12h20"/><path d="M20 12v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8"/><path d="m4 8 16-4"/><path d="m8.86 6.78-.45-1.81a2 2 0 0 1 1.45-2.43l1.94-.48a2 2 0 0 1 2.43 1.46l.45 1.8"/></symbol>
+  <symbol id="c-dance" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></symbol>
+  <symbol id="c-owambe" viewBox="0 0 24 24"><path d="M5.8 11.3 2 22l10.7-3.79"/><path d="M4 3h.01M22 8h.01M15 2h.01M22 20h.01"/><path d="m22 2-2.24.75a2.9 2.9 0 0 0-1.96 3.12c.1.86-.57 1.63-1.45 1.63h-.38c-.86 0-1.6.6-1.76 1.44L14 10"/><path d="m22 13-.82-.33c-.86-.34-1.82.2-1.98 1.11-.11.7-.72 1.22-1.43 1.22H17"/><path d="m11 2 .33.82c.34.86-.2 1.82-1.11 1.98C9.52 4.9 9 5.52 9 6.23V7"/><path d="M11 13c1.93 1.93 2.83 4.17 2 5-.83.83-3.07-.07-5-2-1.93-1.93-2.83-4.17-2-5 .83-.83 3.07.07 5 2Z"/></symbol>
+  <symbol id="c-lifestyle" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></symbol>
+</svg>
+
+<header class="nav">
+  <div class="wrap nav-in">
+    <a class="logo" href="d.html" aria-label="Àmì home"><span class="m m-a">A</span>m<span class="m m-i">ı</span></a>
+    <nav class="nav-links" aria-label="Main"><a href="browse.html">Browse</a><a href="d.html#creators">For creators</a><a href="check.html">Check a licence</a></nav>
+    <div class="nav-end">
+      <a class="login lib" href="library.html">My library</a>
+      <img class="avatar" src="https://images.unsplash.com/photo-1586474714722-d1f9e551cf34?auto=format&fit=crop&crop=faces&w=96&h=96&q=75" alt="Your account">
+      <button class="nav-menu" aria-label="Open menu"><svg class="icon" style="width:22px;height:22px"><use href="#i-menu"/></svg></button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap page">
+  <!-- Step 1 -->
+  <section id="step-file">
+    <div class="page-head">
+      <h1>Upload a video</h1>
+    </div>
+    <label class="drop" id="drop">
+      <input type="file" id="file" accept="video/mp4,video/quicktime,video/*" aria-label="Choose a video file">
+      <div>
+        <div class="drop-icon"><svg class="icon"><use href="#i-up"/></svg></div>
+        <h2>Drag your video here</h2>
+        <p class="hint">MP4, up to 200 MB</p>
+        <span class="btn btn-ink">Choose a file</span>
+        <p class="err" id="file-err" hidden></p>
+      </div>
+    </label>
+  </section>
+
+  <!-- Step 2 -->
+  <section id="step-edit" hidden>
+    <div class="page-head">
+      <h1>Add the details</h1>
+    </div>
+    <div class="edit">
+      <div class="preview">
+        <video id="pv" muted loop autoplay playsinline title="Click to pause or play"></video>
+        <p class="file"><b id="fname">video.mp4</b><span id="fsize">12 MB</span><button type="button" id="replace">Replace</button></p>
+      </div>
+
+      <form class="form" id="form" novalidate>
+        <div class="f" data-f="title">
+          <label for="title">Title</label>
+          <input class="input" id="title" maxlength="120" placeholder="When the light comes back at 3am" autocomplete="off">
+          <p class="ferr" hidden>Add a title.</p>
+        </div>
+        <div class="f" data-f="desc">
+          <label for="desc">Description <span class="opt">(optional)</span></label>
+          <textarea class="area" id="desc" rows="3" placeholder="What happens in the video."></textarea>
+        </div>
+        <div class="f" data-f="cat">
+          <span class="lbl" id="cat-l">Category</span>
+          <div class="cats" role="radiogroup" aria-labelledby="cat-l" id="cats"></div>
+          <p class="ferr" hidden>Pick a category.</p>
+        </div>
+        <div class="f" data-f="price">
+          <label for="price">Your price</label>
+          <div class="money"><span>₦</span><input class="input" id="price" inputmode="numeric" value="5,000" autocomplete="off"></div>
+          <p class="help">For the whole video for a month. You keep 85% of every sale.</p>
+          <p class="ferr" hidden>Set a price of at least ₦1,000.</p>
+        </div>
+        <div class="f" data-f="rights">
+          <label class="check"><input type="checkbox" id="rights"><span>I made this video and have the rights to everything in it, including any music and the people in it.</span></label>
+          <p class="ferr" hidden>Tick this to confirm.</p>
+        </div>
+        <button class="btn btn-ink" type="submit">Publish video</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- Step 3 -->
+  <section id="step-done" hidden>
+    <div class="done">
+      <video id="dv" muted loop playsinline></video>
+      <div class="stage" id="stage">
+        <h2 id="stage-h">Publishing your video</h2>
+        <p id="stage-p">Uploading the file.</p>
+        <div class="progress"><span id="bar"></span></div>
+        <p class="pct" id="pct">0%</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="wrap foot-in">
+    <a class="logo" href="d.html" aria-label="Àmì home"><span class="m m-a">A</span>m<span class="m m-i">ı</span></a>
+    <span>Your work. Your mark. Your money.</span>
+    <nav aria-label="Footer"><a href="browse.html">Browse</a><a href="d.html#creators">For creators</a><a href="check.html">Check a licence</a><a href="#">Help</a></nav>
+  </div>
+</footer>
+
+<nav class="switch" aria-label="Mockup screens"><a href="d.html">Home</a><a href="browse.html">Browse</a><a href="video.html">Video</a><a href="upload.html" aria-current="page">Upload</a></nav>
+
+<script>
+  const MAX = 200 * 1024 * 1024;
+  const CATS = [["Comedy", "c-comedy"], ["Food", "c-food"], ["Dance", "c-dance"], ["Owambe", "c-owambe"], ["Lifestyle", "c-lifestyle"]];
+  const $ = (id) => document.getElementById(id);
+  const show = (step) => ["file", "edit", "done"].forEach((s) => ($(`step-${s}`).hidden = s !== step));
+  const mb = (b) => (b >= 1048576 ? `${(b / 1048576).toFixed(b >= 10485760 ? 0 : 1)} MB` : `${Math.ceil(b / 1024)} KB`);
+  let src = null;
+
+  /* Step 1: pick or drop a file */
+  const drop = $("drop"), input = $("file");
+  ["dragenter", "dragover"].forEach((t) => drop.addEventListener(t, (e) => { e.preventDefault(); drop.classList.add("is-over"); }));
+  ["dragleave", "drop"].forEach((t) => drop.addEventListener(t, () => drop.classList.remove("is-over")));
+  drop.addEventListener("drop", (e) => { e.preventDefault(); if (e.dataTransfer.files[0]) take(e.dataTransfer.files[0]); });
+  input.addEventListener("change", () => input.files[0] && take(input.files[0]));
+  function take(file) {
+    const err = $("file-err");
+    if (!file.type.startsWith("video/")) { err.textContent = "That isn’t a video. Choose an MP4 file."; err.hidden = false; return; }
+    if (file.size > MAX) { err.textContent = `This file is ${mb(file.size)}. Videos can be up to 200 MB.`; err.hidden = false; return; }
+    err.hidden = true;
+    openFile(URL.createObjectURL(file), file.name, file.size);
+  }
+  function openFile(url, name, size) {
+    src = url;
+    $("pv").src = url; $("fname").textContent = name; $("fsize").textContent = mb(size);
+    if (!$("title").value) $("title").value = name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ").replace(/^\w/, (c) => c.toUpperCase());
+    show("edit"); scrollTo({ top: 0 });
+  }
+  $("pv").addEventListener("click", (e) => (e.currentTarget.paused ? e.currentTarget.play() : e.currentTarget.pause()));
+  $("replace").addEventListener("click", () => { input.value = ""; show("file"); input.click(); });
+
+  /* Step 2: details */
+  const cats = $("cats"); let cat = null;
+  cats.innerHTML = CATS.map(([c, i]) => `<button class="cat" type="button" role="radio" aria-checked="false" data-c="${c}"><svg class="icon"><use href="#${i}"/></svg>${c}</button>`).join("");
+  cats.addEventListener("click", (e) => {
+    const b = e.target.closest(".cat"); if (!b) return;
+    cat = b.dataset.c; cats.querySelectorAll(".cat").forEach((x) => x.setAttribute("aria-checked", String(x === b)));
+    mark("cat", false);
+  });
+  const price = $("price");
+  const amount = () => parseInt(price.value.replace(/\D/g, ""), 10) || 0;
+  price.addEventListener("input", () => { const n = amount(); price.value = n ? n.toLocaleString("en-NG") : ""; mark("price", false); });
+  $("title").addEventListener("input", () => mark("title", false));
+  $("rights").addEventListener("change", () => mark("rights", false));
+  function mark(f, bad) { const el = document.querySelector(`.f[data-f="${f}"]`); el.classList.toggle("has-err", bad); const m = el.querySelector(".ferr"); if (m) m.hidden = !bad; }
+
+  $("form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const bad = { title: !$("title").value.trim(), cat: !cat, price: amount() < 1000, rights: !$("rights").checked };
+    Object.entries(bad).forEach(([f, b]) => mark(f, b));
+    const first = Object.keys(bad).find((f) => bad[f]);
+    if (first) { document.querySelector(`.f[data-f="${first}"]`).scrollIntoView({ behavior: "smooth", block: "center" }); return; }
+    publish();
+  });
+
+  /* Step 3: publishing (simulated progress; the real upload reports its own), then live */
+  function publish() {
+    show("done"); scrollTo({ top: 0 });
+    const dv = $("dv"); dv.src = src; dv.play().catch(() => {});
+    const stages = [[40, "Uploading the file."], [75, "Making the watermarked preview."], [100, "Making the thumbnail."]];
+    let p = 0;
+    const t = setInterval(() => {
+      p = Math.min(100, p + 2 + Math.random() * 3);
+      $("bar").style.width = `${p}%`; $("pct").textContent = `${Math.floor(p)}%`;
+      $("stage-p").textContent = stages.find(([until]) => p <= until)[1];
+      if (p >= 100) { clearInterval(t); setTimeout(live, 400); }
+    }, 90);
+  }
+  function live() {
+    $("stage").innerHTML = `
+      <h2>Your video is live</h2>
+      <p>People can find “${$("title").value.trim()}” on Browse and license it now.</p>
+      <div class="actions"><a class="btn btn-ink" href="video.html">View your video</a><a class="btn btn-ghost" href="upload.html">Upload another</a></div>`;
+  }
+
+  // Mockup only: ?demo=edit or ?demo=done opens with a sample clip so each step can be reviewed
+  const demo = new URLSearchParams(location.search).get("demo");
+  if (demo) {
+    openFile("https://videos.pexels.com/video-files/4994037/4994037-sd_960_540_25fps.mp4", "driver-pastor-skit.mp4", 18.4 * 1048576);
+    if (demo === "done") { $("title").value = "POV: your driver is also a pastor"; publish(); }
+  }
+</script>
+<script src="screens.js"></script>
+</body>
+</html>

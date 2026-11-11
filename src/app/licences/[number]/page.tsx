@@ -1,16 +1,17 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { Container, Spinner } from "@/components/ui/page";
+import { Loading } from "@/components/loading";
 import { LicenceView } from "./_components/licence-view";
+import "./licence.css";
 
 export const metadata: Metadata = { title: "Your licence" };
 
 export default function LicencePage({ params }: { params: Promise<{ number: string }> }) {
   return (
-    <Container className="py-10 sm:py-14">
-      <Suspense fallback={<Spinner label="Loading licence" />}>
+    <div className="p-licence wrap page">
+      <Suspense fallback={<Loading label="Loading licence" />}>
         <LicenceView params={params} />
       </Suspense>
-    </Container>
+    </div>
   );
 }

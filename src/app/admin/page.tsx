@@ -3,18 +3,17 @@
 import { ShieldAlert } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useAuth } from "@/components/auth-provider";
-import { LinkButton } from "@/components/ui/button";
+import { Button, LinkButton } from "@/components/ui/button";
 import { FormError } from "@/components/ui/field";
 import { Container, PageHeader, Spinner, Stat } from "@/components/ui/page";
 import { Tab, TabsList, TabsPanel, TabsRoot } from "@/components/ui/tabs";
-import { api, ApiError } from "@/lib/api";
 import { formatNaira } from "@/lib/format";
-import { useApi } from "@/lib/use-api";
+import { errorMessage, useAdminQuery, useAdminUpdateUserMutation, useAdminUpdateVideoMutation } from "@/store/api";
+import { useAuth } from "@/store/auth";
 import { TransactionsTable, UsersTable, VideosTable } from "./_components/admin-tables";
 
 export default function AdminPage() {
-  const { user, ready } = useAuth();
+  const { user, ready, logout } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -31,7 +30,19 @@ export default function AdminPage() {
           </span>
           <h1 className="text-2xl font-extrabold">Admins only</h1>
           <p className="text-[15px] text-muted">The admin dashboard is for the Àmì team. Your account can still upload and license videos as usual.</p>
-          <LinkButton href="/browse">Browse videos</LinkButton>
+          <div className="flex flex-wrap justify-center gap-2">
+            <Button
+              onClick={async () => {
+                await logout();
+                router.push("/login?next=/admin");
+              }}
+            >
+              Log in as an admin
+            </Button>
+            <LinkButton href="/browse" variant="secondary">
+              Browse videos
+            </LinkButton>
+          </div>
         </div>
       </Container>
     );
@@ -40,7 +51,9 @@ export default function AdminPage() {
 }
 
 function AdminDashboard() {
-  const { data, error, loading, reload } = useApi(() => api.admin());
+  const { data, error, isLoading } = useAdminQuery();
+  const [updateUser] = useAdminUpdateUserMutation();
+  const [updateVideo] = useAdminUpdateVideoMutation();
   const [busy, setBusy] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
@@ -49,9 +62,8 @@ function AdminDashboard() {
     setActionError(null);
     try {
       await fn();
-      await reload();
     } catch (e) {
-      setActionError(e instanceof ApiError ? e.message : "That didn't work. Try again.");
+      setActionError(errorMessage(e, "That didn't work. Try again."));
     } finally {
       setBusy(null);
     }
@@ -62,10 +74,10 @@ function AdminDashboard() {
       <div className="flex flex-col gap-8">
         <PageHeader eyebrow="Admin" title="Àmì dashboard" description="Everyone on the platform, every video and every payment. Hide videos, suspend accounts and mark creators as verified." />
 
-        {loading && !data ? (
+        {isLoading ? (
           <Spinner label="Loading dashboard" />
         ) : error ? (
-          <FormError>{error.message}</FormError>
+          <FormError>{errorMessage(error)}</FormError>
         ) : data ? (
           <>
             <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
@@ -97,12 +109,12 @@ function AdminDashboard() {
                   users={data.users}
                   busy={busy}
                   act={act}
-                  onVerify={(id, verified) => api.adminUpdateUser(id, { verified })}
-                  onSuspend={(id, suspended) => api.adminUpdateUser(id, { suspended })}
+                  onVerify={(id, verified) => updateUser({ id, verified }).unwrap()}
+                  onSuspend={(id, suspended) => updateUser({ id, suspended }).unwrap()}
                 />
               </TabsPanel>
               <TabsPanel value="videos">
-                <VideosTable videos={data.videos} busy={busy} act={act} onStatus={(id, status) => api.adminUpdateVideo(id, status)} />
+                <VideosTable videos={data.videos} busy={busy} act={act} onStatus={(id, status) => updateVideo({ id, status }).unwrap()} />
               </TabsPanel>
               <TabsPanel value="transactions">
                 <TransactionsTable transactions={data.transactions} />

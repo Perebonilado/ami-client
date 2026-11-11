@@ -1,6 +1,7 @@
 import { connection, type NextRequest } from "next/server";
 import { db, toVideo } from "@/lib/mock/db";
 import { body, fail, json, sessionUser } from "@/lib/mock/http";
+import { MIN_BASE_KOBO } from "@/lib/pricing";
 import type { UpdateVideoInput } from "@/lib/types";
 
 type Ctx = { params: Promise<{ id: string }> };
@@ -15,7 +16,7 @@ export async function GET(req: NextRequest, { params }: Ctx) {
   return json({ video: toVideo(v) });
 }
 
-// PATCH /api/videos/:id  Creator edits title, description, prices, or hides/unhides.
+// PATCH /api/videos/:id  Creator edits title, description, price, or hides/unhides.
 export async function PATCH(req: NextRequest, { params }: Ctx) {
   const { id } = await params;
   const user = sessionUser(req);
@@ -34,15 +35,10 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
     if (v.status === "under_review") return fail(409, "This video is under review by the Àmì team.");
     v.status = input.status;
   }
-  if (input.prices) {
-    if (!input.prices.some((p) => p.enabled && p.basePriceKobo > 0)) return fail(400, "Keep at least one licence type switched on.");
-    for (const p of input.prices) {
-      const row = db().prices.find((r) => r.videoId === id && r.useType === p.useType);
-      if (row) {
-        row.basePriceKobo = Math.max(0, Math.round(p.basePriceKobo));
-        row.enabled = !!p.enabled;
-      }
-    }
+  if (input.basePriceKobo !== undefined) {
+    const base = Math.round(input.basePriceKobo);
+    if (!(base >= MIN_BASE_KOBO)) return fail(400, "Set a price of at least ₦1,000.");
+    v.basePriceKobo = base;
   }
   return json({ video: toVideo(v) });
 }

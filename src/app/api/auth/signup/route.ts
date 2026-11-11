@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
 import { db, hashPassword, newId, toUser } from "@/lib/mock/db";
-import { body, cleanHandle, fail, json, startSession } from "@/lib/mock/http";
+import { body, fail, json, startSession } from "@/lib/mock/http";
 import type { SignupInput } from "@/lib/types";
 
 export async function POST(req: NextRequest) {
@@ -19,16 +19,13 @@ export async function POST(req: NextRequest) {
     name,
     email,
     passwordHash: hashPassword(password),
-    businessName: input.businessName?.trim() || null,
+    businessName: null,
+    avatarUrl: null,
     isAdmin: false,
     verified: false,
     suspended: false,
     createdAt: new Date().toISOString(),
   });
-  for (const s of input.socialAccounts ?? []) {
-    const handle = cleanHandle(s.handle);
-    if (handle) db().social.push({ id: newId("s"), userId: id, platform: s.platform, handle, verified: false });
-  }
   const user = db().users.find((u) => u.id === id)!;
   return startSession(json({ user: toUser(user) }, { status: 201 }), id);
 }

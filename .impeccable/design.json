@@ -1,0 +1,271 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-10T19:00:00Z",
+  "title": "Design System: Àmì",
+  "extensions": {
+    "colorMeta": {
+      "blue": {
+        "role": "primary",
+        "displayName": "Àmì Blue",
+        "canonical": "#1d4ed8",
+        "tonalRamp": [
+          "#170b47",
+          "#25137a",
+          "#1e40af",
+          "#1d4ed8",
+          "#7a5ff0",
+          "#a595f5",
+          "#cfc6fa",
+          "#eaf0ff"
+        ]
+      },
+      "blue-deep": {
+        "role": "primary",
+        "displayName": "Deep Blue",
+        "canonical": "#1e40af",
+        "tonalRamp": [
+          "#120838",
+          "#1e0f66",
+          "#2c1699",
+          "#1e40af",
+          "#5f45de",
+          "#8b78ea",
+          "#bdb2f4",
+          "#ece8fd"
+        ]
+      },
+      "blue-wash": {
+        "role": "primary",
+        "displayName": "Blue Wash",
+        "canonical": "#eaf0ff",
+        "tonalRamp": [
+          "#2f2a4d",
+          "#4a4475",
+          "#6c66a0",
+          "#938dc4",
+          "#b8b3de",
+          "#d6d2ef",
+          "#e7e3fa",
+          "#eaf0ff"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#0f0f10",
+        "tonalRamp": [
+          "#0f0f10",
+          "#2a2a2e",
+          "#45454c",
+          "#5c5c66",
+          "#8a8a93",
+          "#b8b8c0",
+          "#e4e4ea",
+          "#f5f6f8"
+        ]
+      },
+      "ink-soft": {
+        "role": "neutral",
+        "displayName": "Soft Ink",
+        "canonical": "#5c5c66",
+        "tonalRamp": [
+          "#1d1d21",
+          "#33333a",
+          "#47474f",
+          "#5c5c66",
+          "#7c7c86",
+          "#a0a0a8",
+          "#c8c8ce",
+          "#ececf0"
+        ]
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Line",
+        "canonical": "#ececf0",
+        "tonalRamp": [
+          "#3a3a40",
+          "#5a5a62",
+          "#7d7d86",
+          "#a2a2aa",
+          "#c6c6cc",
+          "#dcdce1",
+          "#ececf0",
+          "#f7f7f9"
+        ]
+      },
+      "wash": {
+        "role": "neutral",
+        "displayName": "Wash",
+        "canonical": "#f5f6f8",
+        "tonalRamp": [
+          "#3b3a44",
+          "#5d5c68",
+          "#82808e",
+          "#a8a6b4",
+          "#cbc9d6",
+          "#e3e1ec",
+          "#efeef5",
+          "#f5f6f8"
+        ]
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "Paper",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "#404040",
+          "#606060",
+          "#808080",
+          "#a0a0a0",
+          "#c0c0c0",
+          "#e0e0e0",
+          "#f2f2f2",
+          "#ffffff"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Hero headline and closing brand line, white on media, centred."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "One per section."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Step names and clip tile names."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "General copy."
+      },
+      "lede": {
+        "displayName": "Lede",
+        "purpose": "The single supporting line under a headline, in Soft Ink."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Buttons, nav and text links."
+      }
+    },
+    "shadows": [
+      {
+        "name": "lift",
+        "value": "0 2px 4px rgb(15 15 16 / 0.08), 0 28px 48px -24px rgb(15 15 16 / 0.45)",
+        "purpose": "Clip tiles on hover, with a 6px rise."
+      },
+      {
+        "name": "card",
+        "value": "0 0 0 1px #e5e7eb, 0 12px 32px -16px rgb(15 15 16 / 0.22)",
+        "purpose": "Licence card and search bar at rest."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out-expo",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "All state transitions: tile lift (0.45s), video zoom (1.2s), button press (0.2s)."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "compact",
+        "value": "860px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The main action on a white surface.",
+      "html": "<a class=\"ds-btn-primary\" href=\"#\">Start selling</a>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; height: 52px; padding: 0 26px; border-radius: 999px; background: #0f0f10; color: #fff; font: 600 16px/1 Figtree, system-ui, sans-serif; text-decoration: none; transition: background-color .2s, transform .2s cubic-bezier(.16,1,.3,1); } .ds-btn-primary:hover { background: #2a2a2e; } .ds-btn-primary:active { transform: translateY(1px); } .ds-btn-primary:focus-visible { outline: 2px solid #1d4ed8; outline-offset: 3px; }"
+    },
+    {
+      "name": "Buttons on Media",
+      "kind": "button",
+      "refersTo": "button-on-media",
+      "description": "White pill plus outlined partner, used over video and photos.",
+      "html": "<div class=\"ds-media\"><a class=\"ds-btn-white\" href=\"#\">Browse videos</a><a class=\"ds-btn-outline\" href=\"#\">Sell your videos</a></div>",
+      "css": ".ds-media { display: flex; gap: 12px; padding: 32px; border-radius: 22px; background: #3a2a24; } .ds-btn-white, .ds-btn-outline { display: inline-flex; align-items: center; height: 52px; padding: 0 26px; border-radius: 999px; font: 600 16px/1 Figtree, system-ui, sans-serif; text-decoration: none; } .ds-btn-white { background: #fff; color: #0f0f10; } .ds-btn-white:hover { background: #f0f0f3; } .ds-btn-outline { color: #fff; box-shadow: inset 0 0 0 1.5px rgb(255 255 255 / .65); } .ds-btn-outline:hover { box-shadow: inset 0 0 0 1.5px #fff; background: rgb(255 255 255 / .08); }"
+    },
+    {
+      "name": "Navigation",
+      "kind": "nav",
+      "refersTo": "nav-signup",
+      "description": "Sticky top bar: wordmark, three links, Log in and a Sign up pill.",
+      "html": "<nav class=\"ds-nav\"><span class=\"ds-logo\">Àmì</span><span class=\"ds-links\"><a href=\"#\">Browse</a><a href=\"#\">For creators</a><a href=\"#\">Check a licence</a></span><span class=\"ds-end\"><a href=\"#\">Log in</a><a class=\"ds-pill\" href=\"#\">Sign up</a></span></nav>",
+      "css": ".ds-nav { display: flex; align-items: center; gap: 44px; height: 76px; padding: 0 24px; background: rgb(255 255 255 / .9); font: 500 15px Figtree, system-ui, sans-serif; } .ds-logo { font: 800 28px/1 'Bricolage Grotesque', system-ui, sans-serif; letter-spacing: -.04em; color: #0f0f10; } .ds-links { display: flex; gap: 30px; } .ds-links a { color: #5c5c66; text-decoration: none; } .ds-links a:hover { color: #0f0f10; } .ds-end { margin-left: auto; display: flex; align-items: center; gap: 20px; font-weight: 600; } .ds-end a { color: #0f0f10; text-decoration: none; } .ds-pill { display: inline-flex; align-items: center; height: 42px; padding: 0 20px; border-radius: 999px; background: #0f0f10; color: #fff !important; }"
+    },
+    {
+      "name": "Clip Tile",
+      "kind": "custom",
+      "refersTo": "clip-tile",
+      "description": "3:4 video tile: still frame, name and duration; lifts and plays a muted loop on hover.",
+      "html": "<a class=\"ds-tile\" href=\"#\"><span class=\"ds-tile-bar\"><span class=\"ds-tile-name\">Comedy</span><span class=\"ds-tile-time\">0:16</span></span></a>",
+      "css": ".ds-tile { position: relative; display: block; width: 240px; aspect-ratio: 3/4; border-radius: 22px; overflow: hidden; color: #fff; text-decoration: none; background: linear-gradient(180deg, transparent 52%, rgb(9 10 12 / .7)), url('https://images.pexels.com/videos/4994037/pexels-photo-4994037.jpeg?auto=compress&cs=tinysrgb&fit=crop&w=480&h=640') center/cover; transition: transform .45s cubic-bezier(.16,1,.3,1), box-shadow .45s cubic-bezier(.16,1,.3,1); } .ds-tile:hover { transform: translateY(-6px); box-shadow: 0 2px 4px rgb(15 15 16 / .08), 0 28px 48px -24px rgb(15 15 16 / .45); } .ds-tile-bar { position: absolute; left: 18px; right: 16px; bottom: 18px; display: flex; align-items: baseline; } .ds-tile-name { font: 700 23px/1 'Bricolage Grotesque', system-ui, sans-serif; letter-spacing: -.025em; } .ds-tile-time { margin-left: auto; font: 500 14px/1 Figtree, system-ui, sans-serif; color: rgb(255 255 255 / .78); font-variant-numeric: tabular-nums; }"
+    },
+    {
+      "name": "Step",
+      "kind": "custom",
+      "refersTo": "step-number",
+      "description": "Numbered step: blue-wash disc, title, one muted line.",
+      "html": "<div class=\"ds-step\"><span class=\"ds-n\">1</span><div><b>Find a clip</b><span>Search skits, food, dance and more.</span></div></div>",
+      "css": ".ds-step { display: grid; grid-template-columns: 44px 1fr; gap: 18px; font: 400 16px/1.5 Figtree, system-ui, sans-serif; color: #5c5c66; } .ds-n { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: #eaf0ff; color: #1d4ed8; font: 700 18px/1 'Bricolage Grotesque', system-ui, sans-serif; } .ds-step b { display: block; margin-top: 2px; font: 700 20px/1.25 'Bricolage Grotesque', system-ui, sans-serif; letter-spacing: -.02em; color: #0f0f10; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Open Screen",
+    "overview": "Àmì is a white, open room where the videos do the talking. Every screen is mostly paper white and generous space, and the colour comes from the content itself: creators laughing, jollof steaming, aso-oke at an owambe. The interface stays quiet so the clips can be loud. Each section says one thing. It gets one headline, at most one short line under it, and one action. Media is real photography or moving video, framed in large rounded rectangles that sit inset on the white page rather than bleeding edge to edge. Where text sits on media, a dark scrim keeps it readable, and the type gets big and confident rather than decorated.",
+    "keyCharacteristics": [
+      "White page, generous section spacing, a centred 1240px container.",
+      "Bricolage Grotesque headlines, Figtree for everything you read or click.",
+      "Real photos and looping muted video as the main visual material.",
+      "Ink-black pill buttons on white; white pill buttons on media.",
+      "Blue appears only as small marks."
+    ],
+    "rules": [
+      {
+        "name": "The Mark Rule",
+        "body": "Blue only ever appears as a small mark: a logo accent, a numbered disc, a badge, a focus ring. It never fills a section, a hero or a large button. If blue covers more than a thumbnail's worth of a screen, it is wrong.",
+        "section": "colors"
+      },
+      {
+        "name": "The Content Is The Colour Rule",
+        "body": "Backgrounds stay white or media. Don't add tinted panels or gradients to make a section feel colourful; pick a better photo or clip instead.",
+        "section": "colors"
+      },
+      {
+        "name": "The One Headline Rule",
+        "body": "A section gets one headline and at most one supporting line. No labels or kickers above headlines, no second sub-heading.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat-At-Rest Rule",
+        "body": "Nothing casts a shadow until it floats over media or responds to a pointer.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do give every section one headline, one short line and one action.",
+      "Do use real photography or looping muted video of Nigerian creators and culture as the main visual material.",
+      "Do put a dark scrim (about 50%) under any text that sits on media.",
+      "Do keep blue to small marks (The Mark Rule).",
+      "Do respect reduced motion: show posters instead of playing video."
+    ],
+    "donts": [
+      "Don't fill the page with rows of video cards, receipt-style widgets or paragraphs of explanation; this was rejected as cluttered.",
+      "Don't add play buttons, progress bars, \"Preview\" tags or other player chrome on top of clip tiles.",
+      "Don't use monospace type for decoration, or labels and kickers above headlines.",
+      "Don't use flat colour fields or gradients where a photo or clip belongs.",
+      "Don't float info cards over images (\"Tolu earned ₦42,500\", \"Licence valid…\"); both were removed.",
+      "Don't add copy, filters or settings nobody asked for; remove before adding.",
+      "Don't use sparkle icons; they read as \"AI\"."
+    ]
+  }
+}

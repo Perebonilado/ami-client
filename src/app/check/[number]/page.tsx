@@ -1,20 +1,17 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { Container, Spinner } from "@/components/ui/page";
-import { CheckResultView } from "../_components/check-result-view";
+import { Loading } from "@/components/loading";
+import { CheckView } from "../_components/check-view";
+import "../check.css";
 
-export const metadata: Metadata = { title: "Licence check" };
+export const metadata: Metadata = { title: "Check a licence" };
 
 export default function CheckResultPage({ params }: { params: Promise<{ number: string }> }) {
   return (
-    <Suspense
-      fallback={
-        <Container className="py-14">
-          <Spinner label="Checking licence" />
-        </Container>
-      }
-    >
-      <CheckResultView params={params} />
-    </Suspense>
+    <div className="p-check wrap">
+      <Suspense fallback={<Loading label="Checking licence" />}>
+        <CheckView params={params} />
+      </Suspense>
+    </div>
   );
 }

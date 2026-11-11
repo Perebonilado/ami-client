@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Àmì · Your licence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Figtree:wght@400..700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="base.css">
+<link rel="stylesheet" href="app.css">
+<style>
+  .licence { align-items: start; }
+  .licence h1 { font-size: clamp(34px, 4vw, 52px); line-height: 1.02; }
+  .licence .rows { margin-top: 32px; }
+  .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
+  .actions .btn { flex: 1 1 200px; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 8h16M4 16h16"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 4v12M6 10l6 6 6-6"/><path d="M4 20h16"/></symbol>
+</svg>
+
+<header class="nav">
+  <div class="wrap nav-in">
+    <a class="logo" href="d.html" aria-label="Àmì home"><span class="m m-a">A</span>m<span class="m m-i">ı</span></a>
+    <nav class="nav-links" aria-label="Main"><a href="browse.html">Browse</a><a href="d.html#creators">For creators</a><a href="check.html">Check a licence</a></nav>
+    <div class="nav-end">
+      <a class="login lib" href="library.html">My library</a>
+      <img class="avatar" src="https://images.unsplash.com/photo-1697383904932-94304530a3dd?auto=format&fit=crop&crop=faces&w=96&h=96&q=75" alt="Your account">
+      <button class="nav-menu" aria-label="Open menu"><svg class="icon" style="width:22px;height:22px"><use href="#i-menu"/></svg></button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap page">
+  <div class="split2 licence">
+    <video class="media" id="clip" muted loop autoplay playsinline
+      poster="https://images.pexels.com/videos/4994037/pexels-photo-4994037.jpeg?auto=compress&cs=tinysrgb&w=1400"
+      src="https://videos.pexels.com/video-files/4994037/4994037-sd_960_540_25fps.mp4"></video>
+
+    <div>
+      <h1>Your licence is ready</h1>
+      <dl class="rows">
+        <div><dt>Video</dt><dd>POV: your driver is also a pastor<span>by Chinedu Okafor</span></dd></div>
+        <div><dt>Part</dt><dd>0:04 – 0:14<span>10 seconds</span></dd></div>
+        <div><dt>How long</dt><dd>1 month<span>until 10 Dec 2026</span></dd></div>
+        <div><dt>Licence number</dt><dd>AMI-7K3Q-92XD</dd></div>
+        <div><dt>Paid</dt><dd>₦3,500</dd></div>
+      </dl>
+      <div class="actions">
+        <a class="btn btn-ink" href="#"><svg class="icon"><use href="#i-down"/></svg>Download video</a>
+        <a class="btn btn-ghost" href="certificate.html">View certificate</a>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer class="foot">
+  <div class="wrap foot-in">
+    <a class="logo" href="d.html" aria-label="Àmì home"><span class="m m-a">A</span>m<span class="m m-i">ı</span></a>
+    <span>Your work. Your mark. Your money.</span>
+    <nav aria-label="Footer"><a href="browse.html">Browse</a><a href="d.html#creators">For creators</a><a href="check.html">Check a licence</a><a href="#">Help</a></nav>
+  </div>
+</footer>
+
+<script>
+  // The preview loops just the part that was licensed
+  const clip = document.getElementById("clip"), START = 4, END = 14;
+  clip.addEventListener("loadedmetadata", () => (clip.currentTime = START));
+  clip.addEventListener("timeupdate", () => { if (clip.currentTime >= END || clip.currentTime < START - 0.25) clip.currentTime = START; });
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) clip.removeAttribute("autoplay");
+</script>
+<script src="screens.js"></script>
+</body>
+</html>

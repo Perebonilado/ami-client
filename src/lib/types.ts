@@ -1,14 +1,15 @@
 // Shared data shapes for the Àmì front end and API.
-// These mirror the data model in the build spec. The API speaks camelCase JSON;
-// the backend can store snake_case columns. All money is in kobo (integers).
+// The API speaks camelCase JSON; the backend can store snake_case columns. All money is in kobo (integers).
+//
+// Licence model: a buyer licenses either the whole video or a part of it (a time range),
+// for 1 month, 3 months, 1 year or forever. Each video has one price set by its creator:
+// the whole video for 1 month. Everything else is worked out from that (see lib/pricing.ts).
 
 export type Platform = "instagram" | "tiktok" | "youtube" | "x";
-export type LicencePlatform = Platform | "all";
-export type UseType = "repost" | "social" | "advert";
-export type Duration = "30d" | "90d" | "1y" | "lifetime";
+export type Duration = "1m" | "3m" | "1y" | "forever";
 export type VideoStatus = "live" | "hidden" | "under_review";
-export type LicenceStatus = "pending" | "active" | "expired";
-export type PaymentStatus = "initiated" | "paid" | "failed";
+export type LicenceStatus = "pending" | "active" | "expired" | "cancelled";
+export type PaymentStatus = "initiated" | "pending" | "paid" | "failed" | "partial" | "overpaid";
 export type CheckStatus = "valid" | "expired" | "not_found";
 
 export interface SocialAccount {
@@ -23,6 +24,7 @@ export interface User {
   name: string;
   email: string;
   businessName: string | null;
+  avatarUrl: string | null;
   isAdmin: boolean;
   verified: boolean;
   suspended: boolean;
@@ -35,14 +37,9 @@ export interface PublicCreator {
   id: string;
   name: string;
   businessName: string | null;
+  avatarUrl: string | null;
   verified: boolean;
   socialAccounts: SocialAccount[];
-}
-
-export interface VideoPrice {
-  useType: UseType;
-  basePriceKobo: number; // 30 days, one platform
-  enabled: boolean;
 }
 
 /** Colours for a generated poster when a video has no thumbnail image. */
@@ -65,15 +62,22 @@ export interface Video {
   fileSha256: string;
   status: VideoStatus;
   createdAt: string;
-  prices: VideoPrice[];
-  fromPriceKobo: number | null; // cheapest enabled licence, null if none enabled
+  basePriceKobo: number; // the creator's price: whole video, 1 month
+}
+
+/** A part of a video, in whole seconds. `null` on a licence means the whole video. */
+export interface LicencePart {
+  startSec: number;
+  endSec: number;
 }
 
 export interface LicenceVideoSummary {
   id: string;
   title: string;
+  previewUrl: string;
   thumbnailUrl: string | null;
   poster: Poster;
+  durationSec: number;
   creatorName: string;
 }
 
@@ -82,12 +86,10 @@ export interface Licence {
   licenceNumber: string; // e.g. AMI-7K3Q-92XD
   video: LicenceVideoSummary;
   buyer: { id: string; name: string; businessName: string | null };
-  useType: UseType;
-  platform: LicencePlatform;
-  coveredAccounts: string[]; // handles, e.g. ["@zoboandco"]
+  part: LicencePart | null;
   duration: Duration;
   startsAt: string | null; // set when payment is confirmed
-  endsAt: string | null; // null = lifetime (or not started)
+  endsAt: string | null; // null = forever (or not started)
   priceKobo: number;
   platformFeeKobo: number;
   creatorShareKobo: number;
@@ -112,9 +114,8 @@ export interface LicenceCheck {
     video: LicenceVideoSummary;
     creator: { name: string; verified: boolean };
     buyer: { name: string; businessName: string | null };
-    useType: UseType;
-    platform: LicencePlatform;
-    coveredAccounts: string[];
+    part: LicencePart | null;
+    duration: Duration;
     startsAt: string | null;
     endsAt: string | null;
   } | null;
@@ -126,8 +127,6 @@ export interface SignupInput {
   name: string;
   email: string;
   password: string;
-  businessName?: string;
-  socialAccounts?: { platform: Platform; handle: string }[];
 }
 
 export interface LoginInput {
@@ -146,9 +145,9 @@ export interface CreateVideoInput {
   title: string;
   description: string;
   category: string;
-  tags: string[];
-  prices: VideoPrice[];
-  declarations: { ownsVideo: boolean; hasRights: boolean };
+  tags?: string[];
+  basePriceKobo: number;
+  rightsConfirmed: boolean; // made the video and has the rights to everything in it
   fileName: string;
   fileSizeBytes: number;
   fileSha256: string;
@@ -160,15 +159,13 @@ export interface UpdateVideoInput {
   title?: string;
   description?: string;
   status?: Extract<VideoStatus, "live" | "hidden">;
-  prices?: VideoPrice[];
+  basePriceKobo?: number;
 }
 
 export interface CheckoutInput {
   videoId: string;
-  useType: UseType;
-  platform: LicencePlatform;
+  part: LicencePart | null;
   duration: Duration;
-  coveredAccounts: string[];
 }
 
 export interface CheckoutResult {
@@ -183,6 +180,7 @@ export interface CheckoutResult {
 export interface PaymentSession {
   reference: string;
   amountKobo: number;
+  paymentUrl: string | null; // the bank's hosted checkout (the mock API points at /pay/:reference)
   status: PaymentStatus;
   licence: Licence;
   video: Video;
@@ -192,11 +190,12 @@ export interface Sale {
   licenceNumber: string;
   videoId: string;
   videoTitle: string;
+  videoThumbnailUrl: string | null;
+  videoPoster: Poster;
   buyerName: string;
   buyerBusinessName: string | null;
-  useType: UseType;
-  platform: LicencePlatform;
-  coveredAccounts: string[];
+  part: LicencePart | null;
+  duration: Duration;
   startsAt: string | null;
   endsAt: string | null;
   creatorShareKobo: number;

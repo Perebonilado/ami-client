@@ -1,233 +1,236 @@
 "use client";
 
-import { ChevronRight, Download, FileBadge, Upload } from "lucide-react";
+import { Upload } from "lucide-react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
-import { LicenceStatusBadge, VideoStatusBadge } from "@/components/ui/badge";
-import { LinkButton } from "@/components/ui/button";
-import { Container, EmptyState, PageHeader, Spinner, Stat } from "@/components/ui/page";
-import { Tab, TabsList, TabsPanel, TabsRoot } from "@/components/ui/tabs";
-import { VideoThumb } from "@/components/video-thumb";
-import { api } from "@/lib/api";
-import { formatDate, formatNaira } from "@/lib/format";
-import { durationLabel, platformLabel, labelForUseType } from "@/lib/pricing";
-import type { Library, Licence, MyVideo } from "@/lib/types";
-import { useApi } from "@/lib/use-api";
-import { useRequireUser } from "./require-user";
-import { SalesTable } from "./sales-table";
+import { ClipCard, Still } from "@/components/clip-card";
+import { Loading } from "@/components/loading";
+import { openDownload } from "@/lib/download";
+import { formatDate, formatNaira, formatPart } from "@/lib/format";
+import { durationPhrase } from "@/lib/pricing";
+import type { Library, Licence, MyVideo, Sale } from "@/lib/types";
+import { useRequireUser } from "@/lib/use-require-user";
+import { errorMessage, useLazyDownloadLinkQuery, useLibraryQuery } from "@/store/api";
 
-type TabValue = "videos" | "licences";
+type Tab = "videos" | "sales" | "bought";
+const licences = (n: number) => `${n} ${n === 1 ? "licence" : "licences"}`;
 
 export function LibraryView() {
   const user = useRequireUser("/library");
-  return (
-    <Container className="flex flex-col gap-8 py-10 sm:py-14">
-      <PageHeader
-        eyebrow="My library"
-        title={user ? `Welcome back, ${user.name.split(" ")[0]}` : "My library"}
-        description="Your videos, what they've earned, and the licences you've bought."
-        actions={
-          <LinkButton href="/upload">
-            <Upload size={16} /> Upload a video
-          </LinkButton>
-        }
-      />
-      {user ? <LibraryContent /> : <Spinner label="Loading your library" />}
-    </Container>
-  );
-}
-
-function LibraryContent() {
-  const { data, error, loading } = useApi(() => api.library());
+  const { data, error } = useLibraryQuery(undefined, { skip: !user });
+  const params = useSearchParams();
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const [tab, setTab] = useState<TabValue>(searchParams.get("tab") === "licences" ? "licences" : "videos");
+  const pathname = usePathname();
 
-  if (loading && !data) return <Spinner label="Loading your library" />;
-  if (error || !data) {
-    return <EmptyState title="We couldn't load your library">{error?.message ?? "Refresh the page to try again."}</EmptyState>;
-  }
-
-  const { totals } = data;
-  return (
-    <div className="flex flex-col gap-8">
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Stat label="Videos" value={totals.videos} />
-        <Stat label="Licences sold" value={totals.licencesSold} />
-        <Stat label="Earnings" value={formatNaira(totals.earningsKobo)} hint="After Àmì's 15% fee" />
-        <Stat label="Pending payout" value={formatNaira(totals.pendingPayoutKobo)} hint="Pays out after the hackathon" />
-      </div>
-
-      <TabsRoot
-        value={tab}
-        onValueChange={(v) => {
-          const next = v as TabValue;
-          setTab(next);
-          router.replace(next === "licences" ? "/library?tab=licences" : "/library", { scroll: false });
-        }}
-        className="flex flex-col gap-6"
-      >
-        <TabsList className="self-start">
-          <Tab value="videos">
-            My videos <span className="tabular opacity-70">{data.videos.length}</span>
-          </Tab>
-          <Tab value="licences">
-            My licences <span className="tabular opacity-70">{data.licences.length}</span>
-          </Tab>
-        </TabsList>
-
-        <TabsPanel value="videos" className="flex flex-col gap-10">
-          <MyVideos library={data} />
-        </TabsPanel>
-        <TabsPanel value="licences">
-          <MyLicences licences={data.licences} />
-        </TabsPanel>
-      </TabsRoot>
-    </div>
-  );
-}
-
-function MyVideos({ library }: { library: Library }) {
-  if (!library.videos.length) {
+  if (error)
     return (
-      <EmptyState
-        title="You haven't uploaded a video yet"
-        action={
-          <LinkButton href="/upload" size="sm">
-            Upload a video
-          </LinkButton>
-        }
-      >
-        Upload a skit, set your licence prices, and pages and brands can pay you in naira to use it.
-      </EmptyState>
+      <div className="empty">
+        <h2>We couldn’t load your library</h2>
+        <p>{errorMessage(error)}</p>
+      </div>
     );
-  }
+  if (!data) return <Loading label="Loading your library" />;
+
+  const asked = params.get("tab") as Tab | null;
+  const tab: Tab = asked && ["videos", "sales", "bought"].includes(asked) ? asked : data.videos.length || !data.licences.length ? "videos" : "bought";
+  const pick = (t: Tab) => router.replace(`${pathname}?tab=${t}`, { scroll: false });
+
+  const tabs: { id: Tab; label: string }[] = [
+    { id: "videos", label: `Videos (${data.videos.length})` },
+    { id: "sales", label: `Sales (${data.sales.length})` },
+    { id: "bought", label: `Bought (${data.licences.length})` },
+  ];
 
   return (
     <>
-      <section className="flex flex-col gap-3">
-        <h2 className="text-lg font-extrabold">Videos</h2>
-        <div className="overflow-x-auto rounded-2xl border border-line bg-white">
-          <table className="w-full min-w-[640px] text-left text-sm">
-            <thead>
-              <tr className="border-b border-line text-[11px] font-bold tracking-[0.08em] text-muted uppercase">
-                <th className="px-4 py-3 font-bold">Video</th>
-                <th className="px-4 py-3 font-bold">Status</th>
-                <th className="px-4 py-3 text-right font-bold">Licences sold</th>
-                <th className="px-4 py-3 text-right font-bold">Earnings</th>
-                <th className="w-12 px-4 py-3">
-                  <span className="sr-only">Edit</span>
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-line">
-              {library.videos.map((v) => (
-                <VideoRow key={v.id} video={v} />
-              ))}
-            </tbody>
-          </table>
+      <div className="head">
+        <div>
+          <h1 className="page-title">My library</h1>
+          {data.videos.length > 0 && (
+            <p className="earned">
+              <b>{formatNaira(data.totals.earningsKobo)}</b> earned from <b>{licences(data.totals.licencesSold)}</b>
+            </p>
+          )}
         </div>
-      </section>
+        <Link className="btn btn-ink" href="/upload">
+          <Upload aria-hidden />
+          Upload a video
+        </Link>
+      </div>
 
-      <section className="flex flex-col gap-3">
-        <div className="flex items-baseline justify-between gap-4">
-          <h2 className="text-lg font-extrabold">Sales</h2>
-          <span className="text-[13px] text-muted">{library.sales.length} licences</span>
-        </div>
-        {library.sales.length ? (
-          <SalesTable sales={library.sales} />
-        ) : (
-          <EmptyState title="No sales yet">When a page or brand licenses one of your videos, it shows up here with the accounts it covers and when it expires.</EmptyState>
-        )}
+      <div
+        className="tabs"
+        role="tablist"
+        aria-label="Library"
+        onKeyDown={(e) => {
+          const i = tabs.findIndex((t) => t.id === tab);
+          const step = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+          if (!step) return;
+          e.preventDefault();
+          const next = tabs[(i + step + tabs.length) % tabs.length].id;
+          pick(next);
+          requestAnimationFrame(() => document.getElementById(`t-${next}`)?.focus());
+        }}
+      >
+        {tabs.map((t) => (
+          <button
+            key={t.id}
+            id={`t-${t.id}`}
+            type="button"
+            role="tab"
+            aria-selected={tab === t.id}
+            aria-controls={`p-${t.id}`}
+            tabIndex={tab === t.id ? 0 : -1}
+            onClick={() => pick(t.id)}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      <section className="panel" role="tabpanel" id={`p-${tab}`} aria-labelledby={`t-${tab}`}>
+        {tab === "videos" && <Videos videos={data.videos} />}
+        {tab === "sales" && <Sales sales={data.sales} />}
+        {tab === "bought" && <Bought licences={data.licences} />}
       </section>
     </>
   );
 }
 
-function VideoRow({ video }: { video: MyVideo }) {
-  const href = `/library/videos/${video.id}`;
+function Videos({ videos }: { videos: MyVideo[] }) {
+  if (videos.length === 0)
+    return (
+      <div className="empty">
+        <h2>No videos yet</h2>
+        <p>Upload a video and other creators can license it.</p>
+        <Link className="btn btn-ghost" href="/upload">
+          Upload a video
+        </Link>
+      </div>
+    );
+
   return (
-    <tr className="group transition-colors hover:bg-sunken/70">
-      <td className="px-4 py-3">
-        <Link href={href} className="flex items-center gap-3.5 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink">
-          {/* title is left empty so the small thumb doesn't render the poster headline */}
-          <VideoThumb thumbnailUrl={video.thumbnailUrl} poster={video.poster} title="" showPlay={false} className="aspect-[4/5] w-12 shrink-0 rounded-lg" />
-          <span className="flex min-w-0 flex-col">
-            <span className="line-clamp-1 font-semibold text-ink group-hover:underline">{video.title}</span>
-            <span className="text-[12px] text-muted">
-              {video.category} · uploaded {formatDate(video.createdAt)}
-            </span>
-          </span>
-        </Link>
-      </td>
-      <td className="px-4 py-3">
-        <VideoStatusBadge status={video.status} />
-      </td>
-      <td className="px-4 py-3 text-right font-semibold text-ink tabular">{video.licencesSold}</td>
-      <td className="px-4 py-3 text-right font-bold whitespace-nowrap text-ink tabular">{formatNaira(video.earningsKobo)}</td>
-      <td className="px-4 py-3 text-right">
-        <Link href={href} aria-label={`Edit ${video.title}`} className="inline-flex size-8 items-center justify-center rounded-full text-muted hover:bg-white hover:text-ink">
-          <ChevronRight size={18} />
-        </Link>
-      </td>
-    </tr>
+    <div className="cards">
+      {videos.map((v) => {
+        const off = v.status !== "live";
+        return (
+          <ClipCard
+            key={v.id}
+            href={`/videos/${v.id}`}
+            title={v.title}
+            subtitle={v.licencesSold ? `${licences(v.licencesSold)} · ${formatNaira(v.earningsKobo)}` : "No licences yet"}
+            durationSec={v.durationSec}
+            thumbnailUrl={v.thumbnailUrl}
+            poster={v.poster}
+            previewUrl={v.previewUrl}
+            muted={off}
+            badge={off ? <span className="badge-quiet">{v.status === "under_review" ? "In review" : "Hidden"}</span> : null}
+          />
+        );
+      })}
+    </div>
   );
 }
 
-function MyLicences({ licences }: { licences: Licence[] }) {
-  if (!licences.length) {
+function Sales({ sales }: { sales: Library["sales"] }) {
+  if (sales.length === 0)
     return (
-      <EmptyState
-        title="You haven't licensed any videos yet"
-        action={
-          <LinkButton href="/browse" size="sm">
-            Browse videos
-          </LinkButton>
-        }
-      >
-        Find a skit for your page or brand, pay in naira, and get a clean file plus a certificate anyone can check.
-      </EmptyState>
+      <div className="empty">
+        <h2>No sales yet</h2>
+        <p>When someone licenses one of your videos, it shows up here.</p>
+      </div>
     );
-  }
 
   return (
-    <ul className="flex flex-col gap-3">
-      {licences.map((l) => (
-        <li key={l.id} className="flex flex-col gap-4 rounded-2xl border border-line bg-white p-4 sm:flex-row sm:items-center sm:gap-5">
-          <div className="flex min-w-0 flex-1 items-center gap-4">
-            <VideoThumb thumbnailUrl={l.video.thumbnailUrl} poster={l.video.poster} title="" showPlay={false} className="aspect-[4/5] w-14 shrink-0 rounded-xl" />
-            <div className="flex min-w-0 flex-col gap-1">
-              <div className="flex flex-wrap items-center gap-2">
-                <p className="line-clamp-1 font-bold text-ink">{l.video.title}</p>
-                <LicenceStatusBadge status={l.status} />
-              </div>
-              <p className="text-[13px] text-muted">
-                by {l.video.creatorName} · {labelForUseType(l.useType)} · {platformLabel(l.platform)} · {durationLabel(l.duration)}
-              </p>
-              <p className="text-[13px] text-muted">
-                <span className="code text-ink">{l.licenceNumber}</span>
-                {" · "}
-                {l.endsAt ? (
-                  <>
-                    {l.status === "expired" ? "Expired" : "Expires"} <span className="text-ink tabular">{formatDate(l.endsAt)}</span>
-                  </>
-                ) : (
-                  "Lifetime licence"
-                )}
-              </p>
-            </div>
+    <ul className="list sales">
+      {sales.map((s: Sale) => (
+        <li key={s.licenceNumber}>
+          <div className="pic">
+            <Still thumbnailUrl={s.videoThumbnailUrl} poster={s.videoPoster} />
           </div>
-          <div className="flex shrink-0 flex-wrap gap-2">
-            <LinkButton href={`/licences/${l.licenceNumber}`} variant="secondary" size="sm">
-              <Download size={15} /> Licence & download
-            </LinkButton>
-            <LinkButton href={`/licences/${l.licenceNumber}/certificate`} variant="secondary" size="sm">
-              <FileBadge size={15} /> Certificate
-            </LinkButton>
+          <div className="t">
+            <Link href={`/licences/${s.licenceNumber}`}>
+              <b>{s.videoTitle}</b>
+            </Link>
+            <span>
+              {s.buyerBusinessName ?? s.buyerName} · {formatDate(s.startsAt)}
+            </span>
           </div>
+          <span className="what">
+            {formatPart(s.part)} · {durationPhrase(s.duration)}
+          </span>
+          <span className="amt">{formatNaira(s.creatorShareKobo)}</span>
         </li>
       ))}
     </ul>
+  );
+}
+
+function Bought({ licences: items }: { licences: Licence[] }) {
+  const [busy, setBusy] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [getDownloadLink] = useLazyDownloadLinkQuery();
+
+  if (items.length === 0)
+    return (
+      <div className="empty">
+        <h2>Nothing bought yet</h2>
+        <p>Licences you buy show up here with their downloads and certificates.</p>
+        <Link className="btn btn-ghost" href="/browse">
+          Browse videos
+        </Link>
+      </div>
+    );
+
+  const download = async (l: Licence) => {
+    setBusy(l.licenceNumber);
+    setError(null);
+    try {
+      const link = await getDownloadLink(l.licenceNumber).unwrap();
+      openDownload(link.url);
+    } catch (e) {
+      setError(errorMessage(e, "We couldn’t start the download. Try again."));
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  return (
+    <>
+      <ul className="list">
+        {items.map((l) => (
+          <li key={l.licenceNumber}>
+            <div className="pic">
+              <Still thumbnailUrl={l.video.thumbnailUrl} poster={l.video.poster} />
+            </div>
+            <div className="t">
+              <Link href={`/licences/${l.licenceNumber}`}>
+                <b>{l.video.title}</b>
+              </Link>
+              <span>by {l.video.creatorName}</span>
+            </div>
+            <span className="what">
+              {formatPart(l.part)} · {l.status === "expired" ? `ended ${formatDate(l.endsAt)}` : l.endsAt ? `until ${formatDate(l.endsAt)}` : "forever"}
+            </span>
+            <span className="acts">
+              {l.status === "active" && (
+                <button className="btn btn-ink" type="button" onClick={() => download(l)} disabled={busy === l.licenceNumber}>
+                  {busy === l.licenceNumber ? "Preparing…" : "Download"}
+                </button>
+              )}
+              <Link className="btn btn-ghost" href={`/licences/${l.licenceNumber}/certificate`}>
+                Certificate
+              </Link>
+            </span>
+          </li>
+        ))}
+      </ul>
+      {error && (
+        <p className="form-err dl-err" role="alert">
+          {error}
+        </p>
+      )}
+    </>
   );
 }

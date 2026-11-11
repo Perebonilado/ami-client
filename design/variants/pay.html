@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Àmì · Payment</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Figtree:wght@400..700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="base.css">
+<link rel="stylesheet" href="app.css">
+<style>
+  .pay { max-width: 520px; margin: 0 auto; padding-top: clamp(40px, 7vw, 96px); text-align: center; }
+  .pay img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 20px; background: #141216; }
+  .pay h1 { margin-top: 36px; font-size: clamp(30px, 3.4vw, 42px); line-height: 1.08; }
+  .pay .sum { margin-top: 12px; font-size: 17px; color: var(--ink-2); }
+  .wait { position: relative; height: 6px; margin: 36px auto 0; max-width: 240px; border-radius: 6px; background: var(--wash); overflow: hidden; }
+  .wait span { position: absolute; top: 0; bottom: 0; width: 40%; border-radius: inherit; background: var(--ink); animation: slide 1.4s var(--ease) infinite; }
+  @keyframes slide { from { left: -40%; } to { left: 100%; } }
+  .actions { display: flex; justify-content: center; flex-wrap: wrap; gap: 12px; margin-top: 36px; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 8h16M4 16h16"/></symbol>
+</svg>
+
+<header class="nav">
+  <div class="wrap nav-in">
+    <a class="logo" href="d.html" aria-label="Àmì home"><span class="m m-a">A</span>m<span class="m m-i">ı</span></a>
+    <nav class="nav-links" aria-label="Main"><a href="browse.html">Browse</a><a href="d.html#creators">For creators</a><a href="check.html">Check a licence</a></nav>
+    <div class="nav-end">
+      <a class="login lib" href="library.html">My library</a>
+      <img class="avatar" src="https://images.unsplash.com/photo-1697383904932-94304530a3dd?auto=format&fit=crop&crop=faces&w=96&h=96&q=75" alt="Your account">
+      <button class="nav-menu" aria-label="Open menu"><svg class="icon" style="width:22px;height:22px"><use href="#i-menu"/></svg></button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="pay" aria-live="polite">
+    <img src="https://images.pexels.com/videos/4994037/pexels-photo-4994037.jpeg?auto=compress&cs=tinysrgb&fit=crop&w=1040&h=585" alt="">
+
+    <div id="confirming">
+      <h1>Confirming your payment</h1>
+      <p class="sum">POV: your driver is also a pastor · 0:04 – 0:14 · 1 month · ₦3,500</p>
+      <div class="wait" aria-hidden="true"><span></span></div>
+    </div>
+
+    <div id="failed" hidden>
+      <h1>Your payment didn’t go through</h1>
+      <p class="sum">POV: your driver is also a pastor · 0:04 – 0:14 · 1 month · ₦3,500</p>
+      <div class="actions">
+        <a class="btn btn-ink" href="pay.html">Try again</a>
+        <a class="btn btn-ghost" href="video.html">Back to the video</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="wrap foot-in">
+    <a class="logo" href="d.html" aria-label="Àmì home"><span class="m m-a">A</span>m<span class="m m-i">ı</span></a>
+    <span>Your work. Your mark. Your money.</span>
+    <nav aria-label="Footer"><a href="browse.html">Browse</a><a href="d.html#creators">For creators</a><a href="check.html">Check a licence</a><a href="#">Help</a></nav>
+  </div>
+</footer>
+
+<script>
+  // Mockup: the real app checks the payment with the bank, then sends people to their licence.
+  // ?state=failed shows what happens when the bank reports a failed payment.
+  if (new URLSearchParams(location.search).get("state") === "failed") {
+    document.getElementById("confirming").hidden = true;
+    document.getElementById("failed").hidden = false;
+    document.title = "Àmì · Payment didn’t go through";
+  } else {
+    setTimeout(() => location.replace("licence.html"), 3500);
+  }
+</script>
+<script src="screens.js"></script>
+</body>
+</html>

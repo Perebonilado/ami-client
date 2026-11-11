@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Àmì · Check a licence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Figtree:wght@400..700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="base.css">
+<link rel="stylesheet" href="app.css">
+<style>
+  .check { max-width: 760px; margin: 0 auto; padding-top: clamp(40px, 7vw, 96px); }
+  .check h1 { text-align: center; font-size: clamp(36px, 4.6vw, 60px); line-height: 1; }
+  .bar {
+    display: flex; align-items: center; gap: 12px; max-width: 620px; height: 64px; margin: 32px auto 0; padding: 0 8px 0 24px;
+    border-radius: 999px; background: #fff; box-shadow: 0 0 0 1px #e6e5ec, 0 10px 28px -14px rgb(15 15 16 / 0.25); transition: box-shadow 0.3s var(--ease);
+  }
+  .bar:focus-within { box-shadow: 0 0 0 2px var(--ink), 0 16px 36px -16px rgb(15 15 16 / 0.32); }
+  .bar input { flex: 1; min-width: 0; height: 100%; border: 0; background: none; outline: none; font: 600 18px/1 var(--body); letter-spacing: 0.04em; color: var(--ink); text-transform: uppercase; }
+  .bar input::placeholder { font-weight: 400; letter-spacing: 0; text-transform: none; color: var(--ink-2); }
+  .bar .btn { height: 48px; padding: 0 24px; }
+
+  .result { margin-top: 48px; padding: 28px; border-radius: 24px; background: #fff; box-shadow: 0 0 0 1px #e6e5ec, 0 12px 32px -16px rgb(15 15 16 / 0.18); }
+  .result .top { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .result .num { font: 700 20px/1.2 var(--head); letter-spacing: 0.01em; }
+  .clip { display: grid; grid-template-columns: 220px 1fr; gap: 24px; align-items: center; margin-top: 24px; }
+  .clip img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 16px; background: #141216; }
+  .clip h2 { font: 600 19px/1.3 var(--body); letter-spacing: -0.01em; }
+  .clip p { margin-top: 4px; font-size: 16px; color: var(--ink-2); }
+  .result .rows { margin-top: 24px; }
+  .result .rows > div:last-child { border-bottom: 0; padding-bottom: 0; }
+  .result.is-off .clip img { filter: grayscale(1); opacity: 0.7; }
+
+  .none { margin-top: 56px; text-align: center; }
+  .none h2 { font-size: clamp(24px, 2.6vw, 32px); line-height: 1.15; }
+  .none p { margin-top: 10px; font-size: 17px; color: var(--ink-2); }
+
+  @media (max-width: 640px) {
+    .bar { height: 56px; padding-left: 18px; }
+    .bar input { font-size: 16px; }
+    .bar .btn { height: 44px; padding: 0 18px; }
+    .result { padding: 20px; }
+    .clip { grid-template-columns: 1fr; gap: 14px; }
+  }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 8h16M4 16h16"/></symbol>
+</svg>
+
+<header class="nav">
+  <div class="wrap nav-in">
+    <a class="logo" href="d.html" aria-label="Àmì home"><span class="m m-a">A</span>m<span class="m m-i">ı</span></a>
+    <nav class="nav-links" aria-label="Main"><a href="browse.html">Browse</a><a href="d.html#creators">For creators</a><a href="check.html" aria-current="page">Check a licence</a></nav>
+    <div class="nav-end">
+      <a class="login" href="login.html">Log in</a>
+      <a class="btn btn-ink btn-sm" href="signup.html">Sign up</a>
+      <button class="nav-menu" aria-label="Open menu"><svg class="icon" style="width:22px;height:22px"><use href="#i-menu"/></svg></button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="check">
+    <h1>Check a licence</h1>
+    <form class="bar" id="form" role="search">
+      <input id="n" name="n" placeholder="Licence number, like AMI-7K3Q-92XD" autocomplete="off" spellcheck="false" aria-label="Licence number" maxlength="13">
+      <button class="btn btn-ink" type="submit">Check</button>
+    </form>
+    <div id="out" aria-live="polite"></div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="wrap foot-in">
+    <a class="logo" href="d.html" aria-label="Àmì home"><span class="m m-a">A</span>m<span class="m m-i">ı</span></a>
+    <span>Your work. Your mark. Your money.</span>
+    <nav aria-label="Footer"><a href="browse.html">Browse</a><a href="d.html#creators">For creators</a><a href="check.html">Check a licence</a><a href="#">Help</a></nav>
+  </div>
+</footer>
+
+<script>
+  // Demo licences (public check shows no prices or emails)
+  const TODAY = new Date("2026-11-10");
+  const LICENCES = {
+    "AMI-7K3Q-92XD": { title: "POV: your driver is also a pastor", by: "Chinedu Okafor", to: "Zobo & Co.", part: "0:04 – 0:14", partSub: "10 seconds", until: "2026-12-10", img: "4994037/pexels-photo-4994037" },
+    "AMI-EXP2-4R8M": { title: "First day at a Lagos startup", by: "Tolu Adeyemi", to: "Gist Central", part: "Whole video", until: "2026-10-03", img: "4994033/pexels-photo-4994033" },
+  };
+  const ALPH = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
+  // Tidy whatever people type into AMI-XXXX-XXXX
+  const tidy = (raw) => {
+    let s = raw.toUpperCase().replace(/[^A-Z0-9]/g, "");
+    if (s.startsWith("AMI")) s = s.slice(3);
+    s = s.slice(0, 8);
+    return "AMI-" + s.slice(0, 4) + (s.length > 4 ? "-" + s.slice(4) : "");
+  };
+  const fmt = (iso) => new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+  const input = document.getElementById("n"), out = document.getElementById("out");
+  input.addEventListener("input", () => { const raw = input.value; if (!raw.trim()) return; const t = tidy(raw); input.value = raw.length < 4 && !/^ami/i.test(raw) ? raw.toUpperCase() : t; });
+
+  function show(num) {
+    const l = LICENCES[num];
+    if (!l) {
+      out.innerHTML = `<div class="none"><h2>We couldn’t find ${num}</h2><p>Check the number on the certificate and try again.</p></div>`;
+      return;
+    }
+    const until = new Date(l.until), days = Math.round((until - TODAY) / 86400000), valid = days >= 0;
+    out.innerHTML = `
+      <article class="result ${valid ? "" : "is-off"}">
+        <div class="top">
+          <span class="num">${num}</span>
+          <span class="status ${valid ? "ok" : "off"}"><i></i>${valid ? `Valid · ${days} days left` : `Expired ${fmt(l.until)}`}</span>
+        </div>
+        <div class="clip">
+          <img src="https://images.pexels.com/videos/${l.img}.jpeg?auto=compress&cs=tinysrgb&fit=crop&w=440&h=248" alt="">
+          <div><h2>${l.title}</h2><p>by ${l.by}</p></div>
+        </div>
+        <dl class="rows">
+          <div><dt>Licensed to</dt><dd>${l.to}</dd></div>
+          <div><dt>Part</dt><dd>${l.part}${l.partSub ? `<span>${l.partSub}</span>` : ""}</dd></div>
+          <div><dt>${valid ? "Valid until" : "Ended"}</dt><dd>${fmt(l.until)}</dd></div>
+        </dl>
+      </article>`;
+  }
+  document.getElementById("form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const num = tidy(input.value);
+    if (num.length < 13) { out.innerHTML = `<div class="none"><h2>That number looks too short</h2><p>Licence numbers look like AMI-7K3Q-92XD.</p></div>`; return; }
+    input.value = num; history.replaceState(null, "", `?n=${num}`); show(num);
+  });
+  // A QR code on a certificate opens this page with the number filled in
+  const start = new URLSearchParams(location.search).get("n");
+  if (start) { input.value = tidy(start); show(tidy(start)); }
+</script>
+<script src="screens.js"></script>
+</body>
+</html>

@@ -17,6 +17,7 @@ export async function GET(req: NextRequest, { params }: Ctx) {
   const session: PaymentSession = {
     reference,
     amountKobo: payment.amountKobo,
+    paymentUrl: `/pay/${reference}`,
     status: payment.status,
     licence: toLicence(licence),
     video: toVideo(video),

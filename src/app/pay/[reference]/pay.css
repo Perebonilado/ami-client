@@ -1,0 +1,14 @@
+/* Payment page (design/variants/pay.html). Scoped under .p-pay. */
+
+.p-pay .pay { max-width: 520px; margin: 0 auto; padding-top: clamp(40px, 7vw, 96px); text-align: center; }
+.p-pay .pic { position: relative; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 20px; background: #141518; }
+.p-pay .pic img, .p-pay .pic .thumb-poster { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.p-pay h1 { margin-top: 36px; font-size: clamp(30px, 3.4vw, 42px); line-height: 1.08; }
+.p-pay .sum { margin-top: 12px; font-size: 17px; color: var(--ink-2); }
+.p-pay .wait { position: relative; height: 6px; margin: 36px auto 0; max-width: 240px; border-radius: 6px; background: var(--wash); overflow: hidden; }
+.p-pay .wait span { position: absolute; top: 0; bottom: 0; width: 40%; border-radius: inherit; background: var(--ink); animation: pay-slide 1.4s var(--ease) infinite; }
+@keyframes pay-slide { from { left: -40%; } to { left: 100%; } }
+.p-pay .actions { display: flex; justify-content: center; flex-wrap: wrap; gap: 12px; margin-top: 36px; }
+@media (prefers-reduced-motion: reduce) {
+  .p-pay .wait span { animation-duration: 3s; }
+}

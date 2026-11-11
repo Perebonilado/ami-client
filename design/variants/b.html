@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Àmì · Home B, Big picture</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Figtree:wght@400..700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="base.css">
+<style>
+  .hero { padding-top: 8px; }
+  .hero-frame { position: relative; height: min(calc(100svh - 100px), 760px); min-height: 520px; border-radius: 28px; overflow: hidden; background: #e88a2d; }
+  .hero-frame img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 70% 30%; }
+  .hero-frame::after { content: ""; position: absolute; inset: 0; background: linear-gradient(20deg, rgb(10 10 12 / 0.72) 0%, rgb(10 10 12 / 0.25) 45%, transparent 70%); }
+  .hero-copy { position: absolute; left: clamp(24px, 4vw, 56px); right: 24px; bottom: clamp(28px, 4vw, 56px); z-index: 1; color: #fff; }
+  .hero h1 { font-size: clamp(52px, 8.4vw, 124px); line-height: 0.9; letter-spacing: -0.045em; }
+  .hero p { margin-top: 20px; font-size: clamp(18px, 1.5vw, 21px); color: rgb(255 255 255 / 0.86); }
+  .ctas { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+  .btn-outline-white { color: #fff; box-shadow: inset 0 0 0 1.5px rgb(255 255 255 / 0.6); }
+  .btn-outline-white:hover { box-shadow: inset 0 0 0 1.5px #fff; }
+
+  .statement { padding-top: clamp(96px, 12vw, 176px); }
+  .statement p { font: 700 clamp(32px, 4.6vw, 66px)/1.12 var(--head); letter-spacing: -0.035em; max-width: 22ch; }
+  .pill { display: inline-block; width: 1.7em; height: 0.82em; margin: 0 0.06em; border-radius: 999px; overflow: hidden; vertical-align: -0.04em; }
+  .pill img { width: 100%; height: 100%; object-fit: cover; }
+  .statement .soft { color: #b4b4bd; }
+  .statement .link { margin-top: 36px; font-size: 17px; }
+
+  .duo { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; padding-top: clamp(96px, 11vw, 160px); }
+  .card .vid { aspect-ratio: 4 / 3; border-radius: 26px; }
+  .card h2 { margin-top: 26px; font-size: clamp(28px, 2.8vw, 40px); line-height: 1.05; }
+  .card p { margin-top: 10px; max-width: 40ch; font-size: 18px; color: var(--ink-2); }
+  .card .link { margin-top: 20px; }
+
+  .trust { padding-top: clamp(96px, 11vw, 160px); text-align: center; }
+  .trust h2 { font-size: clamp(30px, 3.4vw, 46px); line-height: 1.05; max-width: 20ch; margin-inline: auto; }
+  .trust .link { margin-top: 20px; }
+
+  .close { position: relative; margin-top: clamp(96px, 11vw, 160px); border-radius: 28px; overflow: hidden; min-height: 520px; display: grid; place-items: center; text-align: center; color: #fff; }
+  .close img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .close::after { content: ""; position: absolute; inset: 0; background: rgb(10 10 12 / 0.48); }
+  .close > div { position: relative; z-index: 1; padding: 48px 24px; }
+  .close h2 { font-size: clamp(42px, 6vw, 88px); line-height: 0.95; letter-spacing: -0.045em; }
+  .close .ctas { justify-content: center; margin-top: 32px; }
+  .foot { margin-top: clamp(72px, 8vw, 112px); }
+
+  @media (max-width: 860px) {
+    .hero-frame { height: 78svh; min-height: 560px; border-radius: 22px; }
+    .hero-frame img { object-position: 62% 20%; }
+    .hero-frame::after { background: linear-gradient(0deg, rgb(10 10 12 / 0.78) 0%, rgb(10 10 12 / 0.2) 55%, transparent 75%); }
+    .duo { grid-template-columns: 1fr; gap: 56px; }
+    .close { min-height: 440px; }
+  }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12.5-7.5a1 1 0 0 0 0-1.72L8.5 3.64A1 1 0 0 0 7 4.5Z"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 8h16M4 16h16"/></symbol>
+</svg>
+
+<header class="nav">
+  <div class="wrap nav-in">
+    <a class="logo" href="#" aria-label="Àmì home"><span class="m m-a">A</span>m<span class="m m-i">ı</span></a>
+    <nav class="nav-links" aria-label="Main"><a href="#">Browse</a><a href="#creators">For creators</a><a href="#">Check a licence</a></nav>
+    <div class="nav-end">
+      <a class="login" href="#">Log in</a>
+      <a class="btn btn-ink btn-sm" href="#">Sign up</a>
+      <button class="nav-menu" aria-label="Open menu"><svg class="icon" style="width:22px;height:22px"><use href="#i-menu"/></svg></button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="hero wrap">
+    <div class="hero-frame">
+      <img src="https://images.unsplash.com/photo-1677935711525-1059c0cb9b44?auto=format&fit=crop&crop=faces&w=2000&h=1100&q=75" alt="A creator pointing at her phone">
+      <div class="hero-copy">
+        <h1>Use their clip.<br>Pay the creator.</h1>
+        <p>Licensed videos from Nigerian creators.</p>
+        <div class="ctas">
+          <a class="btn btn-white" href="#">Browse videos</a>
+          <a class="btn btn-outline-white" href="#creators">Sell your videos</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="statement wrap" aria-label="What you can license">
+    <p>
+      Skits <span class="pill"><img src="https://images.unsplash.com/photo-1586474714722-d1f9e551cf34?auto=format&fit=crop&crop=faces&w=240&h=120&q=70" alt=""></span>,
+      recipes <span class="pill"><img src="https://images.unsplash.com/photo-1665332195309-9d75071138f0?auto=format&fit=crop&w=240&h=120&q=70" alt=""></span>,
+      dance <span class="pill"><img src="https://images.unsplash.com/photo-1560172859-9db9c0b99820?auto=format&fit=crop&w=240&h=120&q=70" alt=""></span>
+      and owambe <span class="pill"><img src="https://images.unsplash.com/photo-1784202388318-a2caaeffe4b7?auto=format&fit=crop&w=240&h=120&q=70" alt=""></span>
+      <span class="soft">licensed by the people who made them.</span>
+    </p>
+    <a class="link" href="#">Browse all videos <svg class="icon"><use href="#i-arrow"/></svg></a>
+  </section>
+
+  <section class="duo wrap" id="creators">
+    <article class="card">
+      <a class="vid" href="#"><img src="https://images.unsplash.com/photo-1545921406-e8a234c30d85?auto=format&fit=crop&crop=faces&w=1100&h=825&q=75" alt=""><span class="play"><svg><use href="#i-play"/></svg></span></a>
+      <h2>Need a clip?</h2>
+      <p>Find it, pick how you’ll use it, and pay once. You get the clean file and a licence.</p>
+      <a class="link" href="#">Browse videos <svg class="icon"><use href="#i-arrow"/></svg></a>
+    </article>
+    <article class="card">
+      <a class="vid" href="#"><img src="https://images.unsplash.com/photo-1680878790148-18c83f270499?auto=format&fit=crop&crop=faces&w=1100&h=825&q=75" alt=""></a>
+      <h2>Make videos?</h2>
+      <p>Set your own prices and keep 85% of every sale, paid to your bank.</p>
+      <a class="link" href="#">Start selling <svg class="icon"><use href="#i-arrow"/></svg></a>
+    </article>
+  </section>
+
+  <section class="trust wrap" aria-labelledby="trust-h">
+    <h2 id="trust-h">Every licence has a number anyone can check.</h2>
+    <a class="link" href="#">Check a licence <svg class="icon"><use href="#i-arrow"/></svg></a>
+  </section>
+
+  <section class="wrap">
+    <div class="close">
+      <img src="https://images.unsplash.com/photo-1785094165691-643aa8db87ca?auto=format&fit=crop&w=2000&h=1000&q=75" alt="">
+      <div>
+        <h2>Your work.<br>Your mark.<br>Your money.</h2>
+        <div class="ctas">
+          <a class="btn btn-white" href="#">Join Àmì free</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="wrap foot-in">
+    <a class="logo" href="#" aria-label="Àmì home"><span class="m m-a">A</span>m<span class="m m-i">ı</span></a>
+    <span>Your work. Your mark. Your money.</span>
+    <nav aria-label="Footer"><a href="#">Browse</a><a href="#">For creators</a><a href="#">Check a licence</a><a href="#">Help</a></nav>
+  </div>
+</footer>
+
+<nav class="switch" aria-label="Mockup variants"><a href="a.html">A · Centered</a><a href="b.html" aria-current="page">B · Big picture</a><a href="c.html">C · Search first</a><a href="d.html">D · Blend</a></nav>
+</body>
+</html>

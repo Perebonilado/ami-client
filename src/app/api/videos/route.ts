@@ -1,26 +1,32 @@
 import type { NextRequest } from "next/server";
 import { db, newId, toVideo } from "@/lib/mock/db";
 import { body, fail, json, sessionUser } from "@/lib/mock/http";
-import { USE_TYPES } from "@/lib/pricing";
+import { CATEGORIES, MIN_BASE_KOBO } from "@/lib/pricing";
 import type { CreateVideoInput, Poster } from "@/lib/types";
 
-// GET /api/videos?q=&category=  Public browse: live videos only, newest first.
+const STOP = new Set(["the", "and", "for", "with", "her", "his", "their", "that", "this", "from", "who", "are", "was", "someone", "video", "videos", "clip", "clips"]);
+
+// GET /api/videos?q=&category=  Public browse: live videos only.
+// Without a search, newest first. With one, best match first. People can type a creator, a title,
+// or describe a moment ("bride dancing at a wedding"); the real backend swaps this word matching
+// for vector search over the videos themselves.
 export async function GET(req: NextRequest) {
   const q = req.nextUrl.searchParams.get("q")?.trim().toLowerCase() ?? "";
   const category = req.nextUrl.searchParams.get("category") ?? "";
+  const words = q.split(/[^a-z0-9₦]+/).filter((w) => w.length > 2 && !STOP.has(w));
   const d = db();
-  const videos = d.videos
+  const scored = d.videos
     .filter((v) => v.status === "live")
     .filter((v) => !category || v.category === category)
-    .filter((v) => {
-      if (!q) return true;
+    .map((v) => {
       const creator = d.users.find((u) => u.id === v.creatorId);
-      const haystack = [v.title, creator?.name ?? "", creator?.businessName ?? "", ...v.tags].join(" ").toLowerCase();
-      return haystack.includes(q.replace(/^#/, ""));
+      const haystack = [v.title, v.description, v.category, creator?.name ?? "", creator?.businessName ?? "", ...v.tags].join(" ").toLowerCase();
+      const hits = words.filter((w) => haystack.includes(w)).length;
+      return { v, hits };
     })
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-    .map(toVideo);
-  return json({ videos });
+    .filter(({ hits }) => !words.length || hits >= Math.ceil(words.length / 2))
+    .sort((a, b) => b.hits - a.hits || b.v.createdAt.localeCompare(a.v.createdAt));
+  return json({ videos: scored.map(({ v }) => toVideo(v)) });
 }
 
 const POSTERS: Poster[] = [
@@ -37,21 +43,20 @@ export async function POST(req: NextRequest) {
   if (!user) return fail(401, "Log in to upload a video.");
   const input = await body<CreateVideoInput>(req);
 
-  if (!input.title?.trim()) return fail(400, "Give your video a title.");
-  if (!input.category) return fail(400, "Pick a category.");
-  if (!input.declarations?.ownsVideo || !input.declarations?.hasRights) {
-    return fail(400, "Confirm both declarations before publishing.");
-  }
+  if (!input.title?.trim()) return fail(400, "Add a title.");
+  if (!input.category || !CATEGORIES.includes(input.category as (typeof CATEGORIES)[number])) return fail(400, "Pick a category.");
+  if (!input.rightsConfirmed) return fail(400, "Confirm you made the video and have the rights to it.");
   if (!input.fileSha256) return fail(400, "Add a video file.");
-  if ((input.fileSizeBytes ?? 0) > 200 * 1024 * 1024) return fail(413, "Videos can be up to 200 MB for now.");
-  const prices = (input.prices ?? []).filter((p) => USE_TYPES.some((u) => u.value === p.useType));
-  if (!prices.some((p) => p.enabled && p.basePriceKobo > 0)) return fail(400, "Offer at least one licence type with a price.");
+  if ((input.fileSizeBytes ?? 0) > 200 * 1024 * 1024) return fail(413, "Videos can be up to 200 MB.");
+  const base = Math.round(input.basePriceKobo ?? 0);
+  if (base < MIN_BASE_KOBO) return fail(400, "Set a price of at least ₦1,000.");
 
   const d = db();
   const dupe = d.videos.find((v) => v.fileSha256 === input.fileSha256);
-  if (dupe) return fail(409, `This exact file is already registered on Àmì (${dupe.title}).`);
+  if (dupe) return fail(409, `This exact file is already on Àmì (${dupe.title}).`);
 
   const id = newId("v");
+  // Dummy preview for demo uploads: the mock can't store the file itself.
   const sample = `/samples/sample-${(d.videos.length % 3) + 1}.mp4`;
   d.videos.push({
     id,
@@ -64,13 +69,11 @@ export async function POST(req: NextRequest) {
     previewUrl: sample,
     thumbnailUrl: input.thumbnailDataUrl ?? null,
     poster: POSTERS[d.videos.length % POSTERS.length],
-    durationSec: Math.round(input.durationSec ?? 0),
+    durationSec: Math.max(1, Math.round(input.durationSec ?? 0)),
     fileSha256: input.fileSha256,
     status: "live",
     createdAt: new Date().toISOString(),
+    basePriceKobo: base,
   });
-  for (const p of prices) {
-    d.prices.push({ videoId: id, useType: p.useType, basePriceKobo: Math.max(0, Math.round(p.basePriceKobo)), enabled: !!p.enabled });
-  }
   return json({ video: toVideo(d.videos.find((v) => v.id === id)!) }, { status: 201 });
 }

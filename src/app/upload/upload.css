@@ -1,0 +1,63 @@
+/* Upload (design/variants/upload.html). Scoped under .p-upload. */
+
+/* Step 1: drop a file */
+.p-upload .drop {
+  position: relative; display: grid; place-items: center; margin-top: 36px; min-height: 440px; padding: 40px 24px;
+  border-radius: 28px; background: var(--wash); text-align: center; cursor: pointer; transition: background-color 0.25s, box-shadow 0.25s;
+}
+.p-upload .drop:hover { background: #f0f2f5; }
+.p-upload .drop.is-over { background: var(--brand-wash); box-shadow: inset 0 0 0 2px var(--brand); }
+.p-upload .drop:focus-within { box-shadow: inset 0 0 0 2px var(--ink); }
+.p-upload .drop input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+.p-upload .drop-icon { width: 72px; height: 72px; margin: 0 auto; border-radius: 50%; display: grid; place-items: center; background: #fff; box-shadow: 0 8px 24px -12px rgb(15 15 16 / 0.3); transition: transform 0.4s var(--ease); }
+.p-upload .drop:hover .drop-icon, .p-upload .drop.is-over .drop-icon { transform: translateY(-4px); }
+.p-upload .drop-icon svg { width: 28px; height: 28px; }
+.p-upload .drop h2 { margin-top: 24px; font-size: clamp(24px, 2.4vw, 30px); line-height: 1.15; }
+.p-upload .drop .hint { margin-top: 8px; font-size: 16px; color: var(--ink-2); }
+.p-upload .drop .btn { margin-top: 28px; pointer-events: none; }
+.p-upload .drop .err { margin-top: 16px; font-size: 15px; color: var(--err); }
+
+/* Step 2: details */
+.p-upload .edit { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: clamp(40px, 6vw, 88px); align-items: start; margin-top: 36px; }
+.p-upload .preview { position: sticky; top: 100px; }
+.p-upload .preview video, .p-upload .done video { display: block; width: 100%; aspect-ratio: 16 / 9; border-radius: 24px; background: #0e0f11; object-fit: contain; }
+.p-upload .preview video { cursor: pointer; }
+.p-upload .file { display: flex; align-items: center; gap: 12px; margin-top: 16px; font-size: 15px; color: var(--ink-2); }
+.p-upload .file b { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink); font-weight: 600; }
+.p-upload .file span { flex: none; }
+.p-upload .file button { margin-left: auto; flex: none; border: 0; background: none; padding: 6px 0; cursor: pointer; font: 600 15px/1 var(--body); color: var(--ink); text-decoration: underline; text-underline-offset: 4px; }
+
+.p-upload .form { display: grid; gap: 28px; }
+.p-upload .cats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+.p-upload .cat {
+  display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 14px 4px 12px; border: 0; border-radius: 14px;
+  background: #fff; box-shadow: inset 0 0 0 1px #d8dbe1; cursor: pointer; font: 600 13px/1 var(--body); color: var(--ink-2);
+  transition: box-shadow 0.2s, color 0.2s, background-color 0.2s;
+}
+.p-upload .cat svg { width: 24px; height: 24px; stroke-width: 1.6; }
+.p-upload .cat:hover { color: var(--ink); box-shadow: inset 0 0 0 1px #b8bcc4; }
+.p-upload .cat[aria-checked="true"] { color: var(--ink); box-shadow: inset 0 0 0 2px var(--ink); background: var(--wash); }
+.p-upload .f.has-err .cat { box-shadow: inset 0 0 0 1px var(--err-ring); }
+.p-upload .money { position: relative; }
+.p-upload .money span { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); font: 600 16px/1 var(--body); color: var(--ink-2); }
+.p-upload .money .input { padding-left: 36px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.p-upload .form > .btn { width: 100%; height: 56px; font-size: 16px; }
+
+/* Step 3: publishing, then live */
+.p-upload .done { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: clamp(40px, 6vw, 88px); align-items: center; margin-top: 36px; }
+.p-upload .stage h2 { font-size: clamp(30px, 3.4vw, 44px); line-height: 1.05; }
+.p-upload .stage p { margin-top: 12px; font-size: 18px; color: var(--ink-2); }
+.p-upload .progress { height: 8px; margin-top: 28px; border-radius: 8px; background: var(--wash); overflow: hidden; }
+.p-upload .progress span { display: block; height: 100%; border-radius: inherit; background: var(--ink); transition: width 0.3s linear; }
+.p-upload .stage .pct { margin-top: 12px; font-size: 15px; font-variant-numeric: tabular-nums; }
+.p-upload .stage .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
+
+@media (max-width: 960px) {
+  .p-upload .edit, .p-upload .done { grid-template-columns: 1fr; gap: 28px; }
+  .p-upload .preview { position: static; }
+}
+@media (max-width: 860px) {
+  .p-upload .drop { min-height: 360px; border-radius: 22px; }
+  .p-upload .preview video, .p-upload .done video { border-radius: 18px; }
+  .p-upload .cats { grid-template-columns: repeat(3, 1fr); }
+}

@@ -41,3 +41,13 @@ export function handle(h: string) {
 export function shortHash(sha: string) {
   return `${sha.slice(0, 8)}…${sha.slice(-6)}`;
 }
+
+/** "12 seconds" */
+export function formatSeconds(n: number) {
+  return `${n} second${n === 1 ? "" : "s"}`;
+}
+
+/** "0:04 – 0:14" for part of a video, "Whole video" when there's no part. */
+export function formatPart(part: { startSec: number; endSec: number } | null) {
+  return part ? `${formatDuration(part.startSec)} – ${formatDuration(part.endSec)}` : "Whole video";
+}

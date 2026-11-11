@@ -1,0 +1,170 @@
+{
+  "title": "Choose Àmì's visual world",
+  "question": "This sets the look for the home page and every screen after it. Keep the lead direction, take an alternate, or re-roll for a fresh hand.",
+  "options": [
+    {
+      "id": "assigned",
+      "label": "Proof of Payment",
+      "kicker": "THE ROLL",
+      "lineage": "Nigerian transfer receipts and POS slips: the 'send proof of payment' culture",
+      "thesis": "Every clip comes with its receipt: what you may do with it, for how long, and how much reaches the creator.",
+      "palette": ["#ffffff", "#111111", "#f3f3f0", "#4a2bd9"],
+      "materials": ["white thermal paper", "perforated tear edge", "violet rubber-stamp ink", "dotted price leaders", "mono numerals"],
+      "viewport": "A big one-line promise and a search box over a full-width reel of playing clips; the first clip's licence receipt prints out beneath it with the price, the creator's 85% and a License button.",
+      "risk": "Receipt detail can get busy. It only works if receipts appear at money moments and everything else stays bare white.",
+      "raised": [
+        { "from": "challenger-gameboy", "raise": "Four inks only: paper white, thermal black, receipt grey and one stamp violet. Hierarchy comes from size and inversion, never a fifth colour." },
+        { "from": "challenger-soundsystem", "raise": "Type is ranked like a dance bill: one huge line per section, everything else small and quiet." },
+        { "from": "challenger-cape", "raise": "One pull does the work: tapping a clip prints its receipt, the single interaction that explains licensing." },
+        { "from": "challenger-brine", "raise": "Time is visible: every licence shows its days remaining, like a dated batch." }
+      ],
+      "wireframe": {
+        "cols": 12,
+        "rows": 10,
+        "regions": [
+          { "label": "nav", "x": 0, "y": 0, "w": 12, "h": 1 },
+          { "label": "one-line promise", "x": 0, "y": 1, "w": 8, "h": 2 },
+          { "label": "search clips", "x": 8, "y": 2, "w": 4, "h": 1 },
+          { "label": "clip (playing)", "x": 0, "y": 3, "w": 3, "h": 5, "accent": true },
+          { "label": "clip", "x": 3, "y": 3, "w": 3, "h": 5 },
+          { "label": "clip", "x": 6, "y": 3, "w": 3, "h": 5 },
+          { "label": "clip", "x": 9, "y": 3, "w": 3, "h": 5 },
+          { "label": "receipt prints out", "x": 0, "y": 8, "w": 3, "h": 2, "accent": true },
+          { "label": "next row: by category", "x": 3, "y": 8, "w": 9, "h": 2 }
+        ]
+      }
+    },
+    {
+      "id": "model-pick",
+      "label": "Selvedge",
+      "kicker": "IMPECCABLE’S PICK",
+      "lineage": "Wax-print and Ankara selvedges: the printed edge that proves the cloth is genuine",
+      "thesis": "Àmì means 'mark'. Every clip carries a printed edge that proves it is the real one.",
+      "palette": ["#ffffff", "#141414", "#1d2a8f", "#f4b81c"],
+      "materials": ["printed cotton selvedge", "repeating edge type", "indigo and wax-yellow inks"],
+      "viewport": "A white page bordered by one printed selvedge band; clips sit in a wide row, and a licensed clip's edge turns yellow with its licence number printed along it.",
+      "risk": "Wax-print motifs are a familiar 'African design' shortcut, and pattern can crowd a page meant to feel calm.",
+      "wireframe": {
+        "cols": 12,
+        "rows": 10,
+        "regions": [
+          { "label": "nav", "x": 0, "y": 0, "w": 12, "h": 1 },
+          { "label": "selvedge band", "x": 0, "y": 1, "w": 12, "h": 1, "accent": true },
+          { "label": "promise + search", "x": 0, "y": 2, "w": 7, "h": 2 },
+          { "label": "clip", "x": 0, "y": 4, "w": 3, "h": 5 },
+          { "label": "clip", "x": 3, "y": 4, "w": 3, "h": 5 },
+          { "label": "clip", "x": 6, "y": 4, "w": 3, "h": 5 },
+          { "label": "clip", "x": 9, "y": 4, "w": 3, "h": 5 },
+          { "label": "edge strips", "x": 0, "y": 9, "w": 12, "h": 1, "accent": true }
+        ]
+      }
+    },
+    {
+      "id": "challenger-gameboy",
+      "label": "Four-Shade Handheld",
+      "verdict": "declined",
+      "lineage": "Game Boy four-green screens",
+      "thesis": "The catalogue as a tile-scrolling handheld game.",
+      "palette": ["#9bbc0f", "#8bac0f", "#306230", "#0f380f"],
+      "materials": ["8×8 tiles", "dither"],
+      "viewport": "A pixel window of clips scrolled tile by tile.",
+      "case": "Creators don't see themselves in it, and the green field breaks the white-page brief.",
+      "kept": "Total palette discipline: four inks, no fifth.",
+      "risk": "Reads as a novelty game, not a place to pay for licences.",
+      "hero": "https://impeccable.style/worlds/cards/digital-design-canon-gameboy-four-shade-field-hero.webp"
+    },
+    {
+      "id": "challenger-soundsystem",
+      "label": "Dance Bill",
+      "verdict": "declined",
+      "lineage": "Jamaican soundsystem dance posters",
+      "thesis": "Creators billed by rank in outlined block caps.",
+      "palette": ["#f7ef3a", "#ff4fa3", "#111111", "#e23b2e"],
+      "materials": ["fluorescent card", "screen-printed ink"],
+      "viewport": "Top creators stacked by size like a dance bill.",
+      "case": "Fun ranking, but fluorescent card fights the calm white brief and buries prices.",
+      "kept": "Size ranks importance without apology.",
+      "risk": "Loud by nature; the opposite of 'don't overwhelm'.",
+      "hero": "https://impeccable.style/worlds/cards/posters-covers-sleeves-soundsystem-dance-poster-hero.webp"
+    },
+    {
+      "id": "challenger-cape",
+      "label": "Drawcord Cape",
+      "verdict": "declined",
+      "lineage": "transforming silk capes",
+      "thesis": "One pull turns a flat plane into shape.",
+      "palette": ["#0d0d0d", "#c9a227", "#4a4a4a", "#6b7380"],
+      "materials": ["matte silk", "gold cord"],
+      "viewport": "A black semicircle that gathers when pulled.",
+      "case": "A luxury fashion object; says nothing about licences and isn't the creators' world.",
+      "kept": "One control transforms the whole object.",
+      "risk": "Beautiful and irrelevant.",
+      "hero": "https://impeccable.style/worlds/cards/textiles-weave-drape-fashion-drawcord-transforming-cape-hero.webp"
+    },
+    {
+      "id": "challenger-brine",
+      "label": "Brine Calendar",
+      "verdict": "declined",
+      "lineage": "seasonal pickling jars",
+      "thesis": "Licences maturing like dated jars.",
+      "palette": ["#f1f4ef", "#ff7f6b", "#9b1b4a", "#a8825a"],
+      "materials": ["jar glass", "kraft labels"],
+      "viewport": "A shelf of jars, each a licence with its day count.",
+      "case": "Duration maps neatly, but the food costume confuses what is for sale.",
+      "kept": "Time made visible as a state.",
+      "risk": "Charming but off-subject.",
+      "hero": "https://impeccable.style/worlds/cards/food-fermentation-culinary-theater-pickling-brine-calendar-hero.webp"
+    },
+    {
+      "id": "challenger-algorave",
+      "label": "Live-Code Floor",
+      "verdict": "declined",
+      "lineage": "algorave projections",
+      "thesis": "The page as a live code buffer.",
+      "palette": ["#000000", "#39ff14", "#ff2bd6", "#ffb000"],
+      "materials": ["projector black", "mono syntax"],
+      "viewport": "A code buffer that edits the catalogue live.",
+      "case": "Wrong audience and wrong ground: black screens and code for skit makers.",
+      "kept": "Show the change before it happens.",
+      "risk": "Alienating to non-technical creators.",
+      "hero": "https://impeccable.style/worlds/cards/medium-native-algorave-source-floor-hero.webp"
+    },
+    {
+      "id": "challenger-vu",
+      "label": "VU Meter Bridge",
+      "verdict": "declined",
+      "lineage": "recording-desk meter bridges",
+      "thesis": "Trending clips as a row of needles.",
+      "palette": ["#f3ead2", "#111111", "#7a5230", "#d23a2a"],
+      "materials": ["meter glass", "walnut"],
+      "viewport": "A bridge of meters leaning with each clip's sales.",
+      "case": "Reads as music production, not video licensing.",
+      "kept": "Identical units repeated make the row its own ruler.",
+      "risk": "Hardware nostalgia nobody here asked for.",
+      "hero": "https://impeccable.style/worlds/cards/signals-instruments-vu-meter-bridge-hero.webp"
+    }
+  ],
+  "reroll": { "registers": ["safer", "bolder"] },
+  "buildPath": { "value": "code" },
+  "canon": true,
+  "canonCard": {
+    "label": "The category standard",
+    "thesis": "A clean video marketplace in the Patreon and Netflix mould, done with care.",
+    "palette": ["#ffffff", "#111111", "#f2f2f2", "#ff5a1f"],
+    "materials": ["clean grid", "rounded video cards", "one accent"],
+    "viewport": "A search-led headline, then rows of clips by category, then a short 'earn from your videos' band.",
+    "risk": "Looks like every other marketplace.",
+    "wireframe": {
+      "cols": 12,
+      "rows": 10,
+      "regions": [
+        { "label": "nav", "x": 0, "y": 0, "w": 12, "h": 1 },
+        { "label": "headline + search", "x": 2, "y": 1, "w": 8, "h": 2 },
+        { "label": "row: trending", "x": 0, "y": 3, "w": 12, "h": 3 },
+        { "label": "row: comedy", "x": 0, "y": 6, "w": 12, "h": 3 },
+        { "label": "creator band", "x": 0, "y": 9, "w": 12, "h": 1 }
+      ]
+    }
+  },
+  "steer": true
+}

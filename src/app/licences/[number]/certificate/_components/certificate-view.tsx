@@ -1,20 +1,16 @@
 "use client";
 
-import { ArrowLeft, Printer } from "lucide-react";
+import { ArrowLeft, Download } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
-import { use, useEffect, useSyncExternalStore } from "react";
-import { useAuth } from "@/components/auth-provider";
-import { AmiMark } from "@/components/logo";
-import { Button, LinkButton } from "@/components/ui/button";
-import { EmptyState, Spinner } from "@/components/ui/page";
-import { api } from "@/lib/api";
-import { formatDate, shortHash } from "@/lib/format";
-import { USE_TYPES, durationLabel, platformLabel, labelForUseType } from "@/lib/pricing";
-import { useApi } from "@/lib/use-api";
+import { use, useSyncExternalStore } from "react";
+import { Loading } from "@/components/loading";
+import { Wordmark } from "@/components/logo";
+import { formatDate, formatPart, formatSeconds } from "@/lib/format";
+import { useRequireUser } from "@/lib/use-require-user";
+import { useGetLicenceQuery } from "@/store/api";
 
-// The QR code must point at the public site, so judges' phones can open it.
+// The QR code must point at the public site so anyone's phone can open it.
 // Set NEXT_PUBLIC_SITE_URL to the deployed URL; locally it falls back to this browser's origin.
 function useSiteUrl() {
   return useSyncExternalStore(
@@ -24,117 +20,82 @@ function useSiteUrl() {
   );
 }
 
-/**
- * Printable certificate. "Download PDF" uses the browser's Save as PDF.
- * The backend's generated PDF (spec: PDF + QR library) can replace this later with the same layout.
- */
+/** Printable certificate. "Save as PDF" uses the browser's print dialog. */
 export function CertificateView({ params }: { params: Promise<{ number: string }> }) {
   const { number } = use(params);
-  const { user, ready } = useAuth();
-  const router = useRouter();
+  const user = useRequireUser(`/licences/${number}/certificate`);
   const siteUrl = useSiteUrl();
-  const licenceQ = useApi(() => (user ? api.getLicence(number) : Promise.reject(new Error("login"))), [number, user?.id]);
-  const videoId = licenceQ.data?.licence.video.id;
-  const videoQ = useApi(() => (videoId ? api.getVideo(videoId) : Promise.resolve(null)), [videoId]);
+  const { data, error } = useGetLicenceQuery(number, { skip: !user });
 
-  useEffect(() => {
-    if (ready && !user) router.replace(`/login?next=/licences/${number}/certificate`);
-  }, [ready, user, router, number]);
-
-  if (!ready || (licenceQ.loading && !licenceQ.data)) return <Spinner label="Preparing certificate" />;
-  if (licenceQ.error || !licenceQ.data)
+  if (error || (data && data.licence.status !== "active" && data.licence.status !== "expired"))
     return (
-      <div className="w-full max-w-lg">
-        <EmptyState title="No licence with that number" action={<LinkButton href="/library?tab=licences" variant="secondary" size="sm">My licences</LinkButton>} />
+      <div className="empty">
+        <h2>{error ? "No licence with that number" : "This licence isn’t paid for yet"}</h2>
+        <p>{error ? "Check the number, or find it in your library." : "The certificate is ready once the payment goes through."}</p>
+        <Link href="/library?tab=bought" className="btn btn-ghost">
+          My library
+        </Link>
       </div>
     );
+  if (!data) return <Loading label="Preparing certificate" />;
 
-  const l = licenceQ.data.licence;
-  const sha = videoQ.data?.video.fileSha256;
+  const l = data.licence;
   const checkUrl = `${siteUrl}/check/${l.licenceNumber}`;
-  const allows = USE_TYPES.find((u) => u.value === l.useType)?.allows;
 
   return (
-    <div className="flex w-full max-w-[820px] flex-col gap-4">
-      <div className="no-print flex items-center justify-between gap-3">
-        <Link href={`/licences/${l.licenceNumber}`} className="flex items-center gap-1.5 text-sm font-semibold text-muted hover:text-ink">
-          <ArrowLeft size={16} /> Back to licence
+    <>
+      <div className="bar no-print">
+        <Link className="back" href={`/licences/${l.licenceNumber}`}>
+          <ArrowLeft aria-hidden />
+          Your licence
         </Link>
-        <Button size="sm" onClick={() => window.print()}>
-          <Printer size={16} /> Download PDF
-        </Button>
+        <button className="btn btn-ink btn-sm" type="button" onClick={() => print()}>
+          <Download aria-hidden />
+          Save as PDF
+        </button>
       </div>
 
-      <article className="relative overflow-hidden rounded-[28px] border border-line bg-white p-8 shadow-float sm:p-12 print:rounded-none print:border-0 print:shadow-none">
-        <div className="pointer-events-none absolute -top-28 -right-28 size-72 rounded-full border-[28px] border-ember/8" aria-hidden />
+      <article className="sheet" aria-label="Licence certificate">
+        <Wordmark />
+        <h1>Licence certificate</h1>
+        <p className="num">{l.licenceNumber}</p>
 
-        <header className="flex items-start justify-between gap-6 border-b border-line pb-8">
-          <div className="flex items-center gap-3">
-            <AmiMark size={40} />
-            <div>
-              <p className="text-2xl font-extrabold tracking-tight">Àmì</p>
-              <p className="text-[13px] text-muted">Licence certificate</p>
-            </div>
+        <dl className="facts">
+          <div>
+            <dt>Video</dt>
+            <dd>{l.video.title}</dd>
           </div>
-          <div className="text-right">
-            <p className="text-[11px] font-bold tracking-[0.14em] text-muted uppercase">Licence number</p>
-            <p className="code text-xl font-bold">{l.licenceNumber}</p>
+          <div>
+            <dt>Made by</dt>
+            <dd>{l.video.creatorName}</dd>
           </div>
-        </header>
+          <div>
+            <dt>Licensed to</dt>
+            <dd>{l.buyer.businessName ?? l.buyer.name}</dd>
+          </div>
+          <div>
+            <dt>Part</dt>
+            <dd>{l.part ? `${formatPart(l.part)} (${formatSeconds(l.part.endSec - l.part.startSec)})` : "Whole video"}</dd>
+          </div>
+          <div>
+            <dt>Valid from</dt>
+            <dd>{formatDate(l.startsAt)}</dd>
+          </div>
+          <div>
+            <dt>Valid until</dt>
+            <dd>{l.endsAt ? formatDate(l.endsAt) : "Forever"}</dd>
+          </div>
+        </dl>
 
-        <div className="grid gap-10 pt-8 sm:grid-cols-[1fr_auto]">
-          <div className="flex flex-col gap-6">
-            <div>
-              <p className="text-[13px] text-muted">This certifies that</p>
-              <p className="text-2xl font-bold">{l.buyer.businessName ?? l.buyer.name}</p>
-              <p className="mt-2 text-[13px] text-muted">is licensed to use</p>
-              <p className="text-xl leading-snug font-bold">&ldquo;{l.video.title}&rdquo;</p>
-              <p className="text-[15px] text-muted">by {l.video.creatorName}</p>
-            </div>
-
-            <dl className="grid grid-cols-2 gap-x-6 gap-y-4 text-sm">
-              {[
-                ["Licence type", labelForUseType(l.useType)],
-                ["Platform", platformLabel(l.platform)],
-                ["Accounts covered", l.coveredAccounts.join(", ")],
-                ["Duration", durationLabel(l.duration)],
-                ["Valid from", formatDate(l.startsAt)],
-                ["Valid until", l.endsAt ? formatDate(l.endsAt) : "No end date (lifetime)"],
-              ].map(([k, v]) => (
-                <div key={k} className="flex flex-col gap-0.5">
-                  <dt className="text-muted">{k}</dt>
-                  <dd className="font-semibold break-words">{v}</dd>
-                </div>
-              ))}
-            </dl>
+        <div className="proof">
+          <div className="qr">{siteUrl && <QRCodeSVG value={checkUrl} level="M" marginSize={0} aria-label="QR code that opens the licence check" />}</div>
+          <div>
+            <b>Scan to check this licence</b>
+            <span>{checkUrl.replace(/^https?:\/\//, "")}</span>
           </div>
-
-          <div className="flex flex-col items-center gap-3 sm:items-end">
-            <div className="rounded-2xl border border-line p-3">
-              {siteUrl ? <QRCodeSVG value={checkUrl} size={148} level="M" marginSize={0} fgColor="#141014" /> : <div className="size-[148px]" />}
-            </div>
-            <p className="max-w-[180px] text-center text-[12px] leading-snug text-muted sm:text-right">Scan to confirm this licence is real and active.</p>
-          </div>
+          <p className="issued">Issued {formatDate(l.startsAt)}</p>
         </div>
-
-        <section className="mt-8 flex flex-col gap-2 rounded-2xl bg-sunken p-5 text-[13px] leading-relaxed text-muted">
-          <p>
-            <span className="font-semibold text-ink">What this allows: </span>
-            {allows}.
-          </p>
-          <p>Only the accounts named above are covered. Posting from another account isn&apos;t covered by this licence.</p>
-          {sha && (
-            <p>
-              Registered file fingerprint (SHA-256): <span className="code text-ink">{shortHash(sha)}</span>
-            </p>
-          )}
-        </section>
-
-        <footer className="mt-8 flex flex-col gap-1 border-t border-line pt-6 text-[12px] text-muted sm:flex-row sm:justify-between">
-          <span>Issued by Àmì on {formatDate(l.startsAt)}</span>
-          <span className="code">{checkUrl.replace(/^https?:\/\//, "")}</span>
-        </footer>
       </article>
-    </div>
+    </>
   );
 }

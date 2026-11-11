@@ -1,154 +1,129 @@
 "use client";
 
-import { CheckCircle2, Copy, Download, FileBadge2, ScanLine } from "lucide-react";
+import { Download } from "lucide-react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { use, useEffect, useState } from "react";
-import { useAuth } from "@/components/auth-provider";
-import { LicenceStatusBadge } from "@/components/ui/badge";
-import { Button, LinkButton } from "@/components/ui/button";
-import { FormError } from "@/components/ui/field";
-import { EmptyState, Spinner } from "@/components/ui/page";
-import { VideoThumb } from "@/components/video-thumb";
-import { api } from "@/lib/api";
-import { formatDate, formatNaira } from "@/lib/format";
-import { USE_TYPES, durationLabel, platformLabel, labelForUseType } from "@/lib/pricing";
-import { useApi } from "@/lib/use-api";
+import { use, useState } from "react";
+import { Loading } from "@/components/loading";
+import { openDownload } from "@/lib/download";
+import { formatDate, formatNaira, formatPart, formatSeconds } from "@/lib/format";
+import { durationLabel } from "@/lib/pricing";
+import { useRequireUser } from "@/lib/use-require-user";
+import { errorMessage, useGetLicenceQuery, useLazyDownloadLinkQuery } from "@/store/api";
 
 export function LicenceView({ params }: { params: Promise<{ number: string }> }) {
   const { number } = use(params);
-  const justPaid = useSearchParams().get("paid") === "1";
-  const { user, ready } = useAuth();
-  const router = useRouter();
-  const { data, error, loading } = useApi(() => (user ? api.getLicence(number) : Promise.reject(new Error("login"))), [number, user?.id]);
-  const [downloadError, setDownloadError] = useState<string | null>(null);
+  const user = useRequireUser(`/licences/${number}`);
+  const { data, error } = useGetLicenceQuery(number, { skip: !user });
+  const [getDownloadLink] = useLazyDownloadLinkQuery();
   const [downloading, setDownloading] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [downloadError, setDownloadError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (ready && !user) router.replace(`/login?next=/licences/${number}`);
-  }, [ready, user, router, number]);
-
-  if (!ready || (loading && !data)) return <Spinner label="Loading licence" />;
-  if (error || !data)
+  if (error)
     return (
-      <EmptyState title="No licence with that number" action={<LinkButton href="/library?tab=licences" variant="secondary" size="sm">My licences</LinkButton>}>
-        Check the number, or find it in your library.
-      </EmptyState>
+      <div className="empty">
+        <h2>No licence with that number</h2>
+        <p>Check the number, or find it in your library.</p>
+        <Link href="/library?tab=bought" className="btn btn-ghost">
+          My library
+        </Link>
+      </div>
     );
+  if (!data) return <Loading label="Loading licence" />;
 
   const l = data.licence;
   const isBuyer = l.buyer.id === user?.id;
-  const allows = USE_TYPES.find((u) => u.value === l.useType)?.allows;
-  const checkPath = `/check/${l.licenceNumber}`;
+  const title =
+    l.status === "pending"
+      ? "Waiting for your payment"
+      : l.status === "cancelled"
+        ? "This checkout was cancelled"
+        : l.status === "expired"
+          ? "This licence has ended"
+          : isBuyer
+            ? "Your licence is ready"
+            : "A licence for your video";
+  const unpaid = l.status === "pending" || l.status === "cancelled";
 
   async function download() {
     setDownloadError(null);
     setDownloading(true);
     try {
-      const link = await api.downloadLink(l.licenceNumber);
-      const a = document.createElement("a");
-      a.href = link.url;
-      a.download = `${l.video.title} (${l.licenceNumber}).mp4`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
+      const link = await getDownloadLink(l.licenceNumber).unwrap();
+      openDownload(link.url);
     } catch (e) {
-      setDownloadError(e instanceof Error ? e.message : "Couldn't start the download.");
+      setDownloadError(errorMessage(e, "We couldn’t start the download. Try again."));
     } finally {
       setDownloading(false);
     }
   }
 
-  async function copyCheckLink() {
-    try {
-      await navigator.clipboard.writeText(`${window.location.origin}${checkPath}`);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1800);
-    } catch {
-      /* clipboard blocked; the link is visible on the page */
-    }
-  }
-
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-6">
-      {justPaid && l.status === "active" && (
-        <div className="flex items-start gap-3 rounded-3xl border border-ok/20 bg-ok-wash p-5 text-ok">
-          <CheckCircle2 size={24} className="shrink-0" />
+    <div className="split2">
+      <video className="media" muted loop autoPlay playsInline poster={l.video.thumbnailUrl ?? undefined} src={l.video.previewUrl} aria-label={l.video.title} />
+
+      <div>
+        <h1>{title}</h1>
+        <dl className="rows">
           <div>
-            <p className="text-lg font-bold">Payment confirmed. Your licence is active.</p>
-            <p className="text-[15px] text-ok/80">Download the clean file and keep the certificate. It&apos;s also saved in My licences.</p>
-          </div>
-        </div>
-      )}
-
-      <div className="flex flex-col gap-6 rounded-3xl border border-line bg-white p-5 sm:p-8">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div className="flex flex-col gap-1">
-            <span className="text-xs font-bold tracking-[0.12em] text-muted uppercase">Licence number</span>
-            <span className="code text-2xl font-bold">{l.licenceNumber}</span>
-          </div>
-          <LicenceStatusBadge status={l.status} />
-        </div>
-
-        <div className="flex gap-4">
-          <VideoThumb thumbnailUrl={l.video.thumbnailUrl} poster={l.video.poster} title="" showPlay={false} className="h-28 w-[5.6rem] shrink-0 rounded-2xl" />
-          <div className="flex min-w-0 flex-col gap-1">
-            <Link href={`/videos/${l.video.id}`} className="text-lg leading-snug font-bold hover:underline">
+            <dt>Video</dt>
+            <dd>
               {l.video.title}
-            </Link>
-            <p className="text-sm text-muted">by {l.video.creatorName}</p>
-            <p className="mt-1 text-sm text-muted">{allows}</p>
+              <span>by {l.video.creatorName}</span>
+            </dd>
           </div>
-        </div>
-
-        <dl className="grid grid-cols-2 gap-x-6 gap-y-4 border-t border-line pt-6 text-sm sm:grid-cols-3">
-          {[
-            ["Licence type", labelForUseType(l.useType)],
-            ["Platform", platformLabel(l.platform)],
-            ["Duration", durationLabel(l.duration)],
-            ["Covers", l.coveredAccounts.join(", ")],
-            ["Starts", formatDate(l.startsAt)],
-            ["Ends", l.endsAt ? formatDate(l.endsAt) : "Never (lifetime)"],
-            ["Licensed to", l.buyer.businessName ?? l.buyer.name],
-            ["Paid", formatNaira(l.priceKobo)],
-          ].map(([k, v]) => (
-            <div key={k} className="flex min-w-0 flex-col gap-0.5">
-              <dt className="text-muted">{k}</dt>
-              <dd className="font-semibold break-words">{v}</dd>
+          <div>
+            <dt>Part</dt>
+            <dd>
+              {formatPart(l.part)}
+              {l.part && <span>{formatSeconds(l.part.endSec - l.part.startSec)}</span>}
+            </dd>
+          </div>
+          <div>
+            <dt>How long</dt>
+            <dd>
+              {durationLabel(l.duration)}
+              {l.endsAt && <span>{l.status === "expired" ? "ended" : "until"} {formatDate(l.endsAt)}</span>}
+            </dd>
+          </div>
+          <div>
+            <dt>Licence number</dt>
+            <dd>{l.licenceNumber}</dd>
+          </div>
+          {!unpaid && (
+            <div>
+              <dt>{isBuyer ? "Paid" : "You earned"}</dt>
+              <dd>{formatNaira(isBuyer ? l.priceKobo : l.creatorShareKobo)}</dd>
             </div>
-          ))}
+          )}
         </dl>
 
-        {isBuyer && (
-          <div className="flex flex-col gap-3 border-t border-line pt-6">
-            <div className="flex flex-col gap-2 sm:flex-row">
-              <Button size="lg" onClick={download} disabled={downloading || l.status !== "active"} className="sm:flex-1">
-                <Download size={18} /> {downloading ? "Preparing file…" : "Download video"}
-              </Button>
-              <LinkButton href={`/licences/${l.licenceNumber}/certificate`} variant="secondary" size="lg" className="sm:flex-1">
-                <FileBadge2 size={18} /> Download certificate
-              </LinkButton>
-            </div>
-            {l.status !== "active" && <p className="text-[13px] text-muted">Downloads are only available while the licence is active.</p>}
-            <FormError>{downloadError}</FormError>
-          </div>
-        )}
-      </div>
-
-      <div className="flex flex-col gap-3 rounded-3xl border border-line bg-white p-5 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-start gap-3">
-          <ScanLine size={20} className="mt-0.5 shrink-0 text-ember" />
-          <div className="text-sm">
-            <p className="font-bold">Anyone can check this licence</p>
-            <p className="text-muted">
-              The certificate&apos;s QR code opens <Link href={checkPath} className="code font-semibold text-ink underline">{checkPath}</Link>
-            </p>
-          </div>
+        <div className="actions">
+          {l.status === "active" && isBuyer && (
+            <button type="button" className="btn btn-ink" onClick={download} disabled={downloading}>
+              <Download aria-hidden />
+              {downloading ? "Preparing…" : "Download video"}
+            </button>
+          )}
+          {l.status === "expired" && isBuyer && (
+            <Link href={`/videos/${l.video.id}`} className="btn btn-ink">
+              License again
+            </Link>
+          )}
+          {unpaid ? (
+            <Link href={`/videos/${l.video.id}`} className="btn btn-ghost">
+              Back to the video
+            </Link>
+          ) : (
+            <Link href={`/licences/${l.licenceNumber}/certificate`} className="btn btn-ghost">
+              View certificate
+            </Link>
+          )}
         </div>
-        <Button variant="secondary" size="sm" onClick={copyCheckLink}>
-          <Copy size={14} /> {copied ? "Copied" : "Copy check link"}
-        </Button>
+        {downloadError && (
+          <p className="form-err" role="alert">
+            {downloadError}
+          </p>
+        )}
       </div>
     </div>
   );

@@ -1,125 +1,100 @@
 "use client";
 
 import { Menu } from "@base-ui/react/menu";
-import { ChevronDown, Menu as MenuIcon, Upload } from "lucide-react";
+import { Menu as MenuIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useState, useSyncExternalStore } from "react";
 import { initials } from "@/lib/format";
-import { useAuth } from "./auth-provider";
+import { useAuth } from "@/store/auth";
 import { Logo } from "./logo";
-import { LinkButton } from "./ui/button";
+import { SearchBar } from "./search-bar";
+import { TestLoginButton } from "./test-login-button";
 
-const navLink =
-  "rounded-full px-3 py-2 text-sm font-medium text-muted transition-colors hover:text-ink focus-visible:outline-2 focus-visible:outline-ink data-[active=true]:text-ink";
+/** The log in and sign up forms have their own minimal top bar. */
+export const BARE_ROUTES = ["/login", "/signup"];
 
-const menuItem =
-  "flex cursor-default items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-ink outline-none select-none data-highlighted:bg-sunken";
+const LINKS = [
+  { href: "/browse", label: "Browse" },
+  { href: "/check", label: "Check a licence" },
+];
 
 /** Shown while the header waits for the URL during prerendering. */
 export function SiteHeaderFallback() {
   return (
-    <header className="no-print sticky top-0 z-40 border-b border-line/80 bg-canvas/85 backdrop-blur-md">
-      <div className="mx-auto flex h-16 w-full max-w-6xl items-center px-4 sm:px-6">
+    <header className="nav no-print">
+      <div className="wrap nav-in">
         <Logo />
       </div>
     </header>
   );
 }
 
+const noop = () => () => {};
+
 export function SiteHeader() {
-  const { user, ready, logout } = useAuth();
+  const { user, ready, logout, loginWithTestAccount } = useAuth();
+  // The header can finish loading after the login check does. Until it has, show what the server
+  // showed (the empty slot), or React sees a different header in the browser and rebuilds it.
+  const hydrated = useSyncExternalStore(noop, () => true, () => false);
   const pathname = usePathname();
   const router = useRouter();
-
-  const links = [
-    { href: "/browse", label: "Browse" },
-    { href: "/#how-it-works", label: "How it works" },
-    { href: "/#pricing", label: "Pricing" },
-    { href: "/check", label: "Check a licence" },
-  ];
+  if (BARE_ROUTES.includes(pathname)) return null;
+  const here = (href: string) => (pathname === href || pathname.startsWith(`${href}/`) ? "page" : undefined);
 
   return (
-    <header className="no-print sticky top-0 z-40 border-b border-line/80 bg-canvas/85 backdrop-blur-md">
-      <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
-        <div className="flex items-center gap-2 md:gap-6">
-          <Menu.Root>
-            <Menu.Trigger
-              className="-ml-2 flex size-9 items-center justify-center rounded-full text-ink hover:bg-ink/5 focus-visible:outline-2 focus-visible:outline-ink md:hidden"
-              aria-label="Open menu"
-            >
-              <MenuIcon size={20} />
-            </Menu.Trigger>
-            <Menu.Portal>
-              <Menu.Positioner className="z-50 outline-none" sideOffset={8} align="start">
-                <Menu.Popup className="min-w-56 origin-(--transform-origin) rounded-2xl border border-line bg-white p-1.5 shadow-float outline-none transition-[scale,opacity] duration-100 data-ending-style:scale-[0.98] data-ending-style:opacity-0 data-starting-style:scale-[0.98] data-starting-style:opacity-0">
-                  {links.map((l) => (
-                    <Menu.LinkItem key={l.href} className={menuItem} render={<Link href={l.href} />}>
-                      {l.label}
-                    </Menu.LinkItem>
-                  ))}
-                  {user && (
-                    <>
-                      <Menu.Separator className="mx-1.5 my-1 h-px bg-line" />
-                      <Menu.LinkItem className={menuItem} render={<Link href="/library" />}>
-                        My library
-                      </Menu.LinkItem>
-                    </>
-                  )}
-                </Menu.Popup>
-              </Menu.Positioner>
-            </Menu.Portal>
-          </Menu.Root>
-          <Logo />
-          <nav className="hidden items-center md:flex" aria-label="Main">
-            {links.map((l) => (
-              <Link key={l.href} href={l.href} className={navLink} data-active={pathname === l.href}>
-                {l.label}
-              </Link>
-            ))}
-          </nav>
-        </div>
+    <header className="nav no-print">
+      <div className="wrap nav-in">
+        <Logo />
+        <nav className="nav-links" aria-label="Main">
+          {LINKS.map((l) => (
+            <Link key={l.href} href={l.href} aria-current={here(l.href)}>
+              {l.label}
+            </Link>
+          ))}
+        </nav>
+        {/* Browse has its own big search bar */}
+        {pathname !== "/browse" && <NavSearch />}
 
-        <div className="flex items-center gap-2">
-          {!ready ? (
-            <span className="h-9 w-24" aria-hidden />
+        <div className="nav-end">
+          {!ready || !hydrated ? (
+            <span style={{ width: 120, height: 42 }} aria-hidden />
           ) : user ? (
             <>
-              <Link href="/library" className={`${navLink} hidden sm:inline-flex`} data-active={pathname.startsWith("/library")}>
+              <Link href="/library" className="nav-text" aria-current={here("/library")}>
                 My library
               </Link>
-              <LinkButton href="/upload" size="sm">
-                <Upload size={16} /> Upload
-              </LinkButton>
               <Menu.Root>
-                <Menu.Trigger
-                  className="flex h-9 items-center gap-1 rounded-full border border-line bg-white pr-2 pl-1 text-sm font-semibold transition-colors hover:border-line-strong focus-visible:outline-2 focus-visible:outline-ink data-popup-open:border-ink"
-                  aria-label="Account menu"
-                >
-                  <span className="flex size-7 items-center justify-center rounded-full bg-ember text-[11px] font-bold text-white">{initials(user.name)}</span>
-                  <ChevronDown size={14} className="text-muted" />
+                <Menu.Trigger className="avatar-btn" aria-label="Your account">
+                  {user.avatarUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={user.avatarUrl} alt="" />
+                  ) : (
+                    initials(user.name)
+                  )}
                 </Menu.Trigger>
                 <Menu.Portal>
-                  <Menu.Positioner className="z-50 outline-none" sideOffset={8} align="end">
-                    <Menu.Popup className="min-w-56 origin-(--transform-origin) rounded-2xl border border-line bg-white p-1.5 shadow-float outline-none transition-[scale,opacity] duration-100 data-ending-style:scale-[0.98] data-ending-style:opacity-0 data-starting-style:scale-[0.98] data-starting-style:opacity-0">
-                      <div className="px-3 pt-2 pb-2.5">
-                        <p className="truncate text-sm font-bold">{user.name}</p>
-                        <p className="truncate text-xs text-muted">{user.businessName ?? user.email}</p>
+                  <Menu.Positioner sideOffset={10} align="end" className="z-50 outline-none">
+                    <Menu.Popup className="menu-pop">
+                      <div className="menu-who">
+                        <b>{user.name}</b>
+                        <span>{user.businessName ?? user.email}</span>
                       </div>
-                      <Menu.Separator className="mx-1.5 my-1 h-px bg-line" />
-                      <Menu.LinkItem className={menuItem} render={<Link href="/library" />}>
+                      <Menu.Separator className="menu-sep" />
+                      <Menu.LinkItem className="menu-item" render={<Link href="/library" />}>
                         My library
                       </Menu.LinkItem>
-                      <Menu.LinkItem className={menuItem} render={<Link href="/profile" />}>
-                        Profile and handles
+                      <Menu.LinkItem className="menu-item" render={<Link href="/upload" />}>
+                        Upload a video
                       </Menu.LinkItem>
                       {user.isAdmin && (
-                        <Menu.LinkItem className={menuItem} render={<Link href="/admin" />}>
-                          Admin dashboard
+                        <Menu.LinkItem className="menu-item" render={<Link href="/admin" />}>
+                          Admin
                         </Menu.LinkItem>
                       )}
-                      <Menu.Separator className="mx-1.5 my-1 h-px bg-line" />
+                      <Menu.Separator className="menu-sep" />
                       <Menu.Item
-                        className={menuItem}
+                        className="menu-item"
                         onClick={async () => {
                           await logout();
                           router.push("/");
@@ -134,16 +109,63 @@ export function SiteHeader() {
             </>
           ) : (
             <>
-              <Link href="/login" className={navLink}>
-                Log in
-              </Link>
-              <LinkButton href="/signup" size="sm">
-                Sign up
-              </LinkButton>
+              <TestLoginButton className="nav-text">Log in</TestLoginButton>
+              <TestLoginButton className="btn btn-ink btn-sm nav-signup">Sign up</TestLoginButton>
             </>
           )}
+
+          <Menu.Root>
+            <Menu.Trigger className="nav-menu" aria-label="Open menu">
+              <MenuIcon aria-hidden />
+            </Menu.Trigger>
+            <Menu.Portal>
+              <Menu.Positioner sideOffset={10} align="end" className="z-50 outline-none">
+                <Menu.Popup className="menu-pop">
+                  {LINKS.map((l) => (
+                    <Menu.LinkItem key={l.href} className="menu-item" render={<Link href={l.href} />}>
+                      {l.label}
+                    </Menu.LinkItem>
+                  ))}
+                  <Menu.Separator className="menu-sep" />
+                  {user ? (
+                    <>
+                      <Menu.LinkItem className="menu-item" render={<Link href="/library" />}>
+                        My library
+                      </Menu.LinkItem>
+                      <Menu.LinkItem className="menu-item" render={<Link href="/upload" />}>
+                        Upload a video
+                      </Menu.LinkItem>
+                    </>
+                  ) : (
+                    <Menu.Item className="menu-item" onClick={() => loginWithTestAccount().catch(() => router.push("/login"))}>
+                      Log in
+                    </Menu.Item>
+                  )}
+                </Menu.Popup>
+              </Menu.Positioner>
+            </Menu.Portal>
+          </Menu.Root>
         </div>
       </div>
     </header>
+  );
+}
+
+/** Compact search in the nav. Enter takes you to Browse with the results. */
+function NavSearch() {
+  const router = useRouter();
+  const [text, setText] = useState("");
+  return (
+    <div className="nav-search">
+      <SearchBar
+        compact
+        value={text}
+        onChange={setText}
+        onSubmit={(q) => {
+          router.push(q ? `/browse?q=${encodeURIComponent(q)}` : "/browse");
+          setText("");
+        }}
+      />
+    </div>
   );
 }

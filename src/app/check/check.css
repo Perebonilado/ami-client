@@ -1,0 +1,36 @@
+/* Check a licence (design/variants/check.html). Scoped under .p-check. */
+
+.p-check .lookup { max-width: 760px; margin: 0 auto; padding-top: clamp(40px, 7vw, 96px); }
+.p-check h1 { text-align: center; font-size: clamp(36px, 4.6vw, 60px); line-height: 1; }
+.p-check .bar {
+  display: flex; align-items: center; gap: 12px; max-width: 620px; height: 64px; margin: 32px auto 0; padding: 0 8px 0 24px;
+  border-radius: 999px; background: #fff; box-shadow: 0 0 0 1px #e5e7eb, 0 10px 28px -14px rgb(15 15 16 / 0.25); transition: box-shadow 0.3s var(--ease);
+}
+.p-check .bar:focus-within { box-shadow: 0 0 0 2px var(--ink), 0 16px 36px -16px rgb(15 15 16 / 0.32); }
+.p-check .bar input { flex: 1; min-width: 0; height: 100%; padding: 0; border: 0; background: none; outline: none; font: 600 18px/1 var(--body); letter-spacing: 0.04em; color: var(--ink); text-transform: uppercase; }
+.p-check .bar input::placeholder { font-weight: 400; letter-spacing: 0; text-transform: none; color: var(--ink-2); }
+.p-check .bar .btn { height: 48px; padding: 0 24px; }
+
+.p-check .result { margin-top: 48px; padding: 28px; border-radius: 24px; background: #fff; box-shadow: 0 0 0 1px #e5e7eb, 0 12px 32px -16px rgb(15 15 16 / 0.18); }
+.p-check .result .top { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.p-check .result .num { font: 700 20px/1.2 var(--head); letter-spacing: 0.01em; }
+.p-check .clip { display: grid; grid-template-columns: 220px 1fr; gap: 24px; align-items: center; margin-top: 24px; }
+.p-check .clip .pic { position: relative; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 16px; background: #141518; }
+.p-check .clip .pic img, .p-check .clip .pic .thumb-poster { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.p-check .clip h2 { font: 600 19px/1.3 var(--body); letter-spacing: -0.01em; }
+.p-check .clip p { display: flex; align-items: center; gap: 5px; margin-top: 4px; font-size: 16px; color: var(--ink-2); }
+.p-check .result .rows { margin-top: 24px; }
+.p-check .result .rows > div:last-child { border-bottom: 0; padding-bottom: 0; }
+.p-check .result.is-off .clip .pic { filter: grayscale(1); opacity: 0.7; }
+
+.p-check .none { margin-top: 56px; text-align: center; }
+.p-check .none h2 { font-size: clamp(24px, 2.6vw, 32px); line-height: 1.15; }
+.p-check .none p { margin-top: 10px; font-size: 17px; color: var(--ink-2); }
+
+@media (max-width: 640px) {
+  .p-check .bar { height: 56px; padding-left: 18px; }
+  .p-check .bar input { font-size: 16px; }
+  .p-check .bar .btn { height: 44px; padding: 0 18px; }
+  .p-check .result { padding: 20px; }
+  .p-check .clip { grid-template-columns: 1fr; gap: 14px; }
+}

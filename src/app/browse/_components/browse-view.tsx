@@ -1,127 +1,207 @@
 "use client";
 
-import { Toggle } from "@base-ui/react/toggle";
-import { ToggleGroup } from "@base-ui/react/toggle-group";
-import { Search, X } from "lucide-react";
+import { Menu } from "@base-ui/react/menu";
+import { ArrowUpDown, Check } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
-import { LinkButton } from "@/components/ui/button";
-import { EmptyState } from "@/components/ui/page";
-import { VideoCard, VideoCardSkeleton } from "@/components/video-card";
-import { api } from "@/lib/api";
+import { useEffect, useRef, useState } from "react";
+import { ClipCard } from "@/components/clip-card";
+import { CATEGORY_ICONS } from "@/components/icons";
+import { Loading } from "@/components/loading";
+import { SearchBar } from "@/components/search-bar";
 import { CATEGORIES } from "@/lib/pricing";
-import { useApi } from "@/lib/use-api";
+import type { Video } from "@/lib/types";
+import { errorMessage, useListVideosQuery } from "@/store/api";
 
-const chip =
-  "h-9 shrink-0 rounded-full border border-line bg-white px-4 text-sm font-semibold text-muted transition-colors select-none hover:border-line-strong hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink data-pressed:border-ink data-pressed:bg-ink data-pressed:text-white";
+const RAIL = ["All", ...CATEGORIES];
+const SORTS = [
+  { value: "new", label: "Newest" },
+  { value: "low", label: "Price: low to high" },
+  { value: "high", label: "Price: high to low" },
+] as const;
+type Sort = (typeof SORTS)[number]["value"];
+
+const NEW_DAYS = 7;
 
 export function BrowseView() {
+  const params = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
-  const params = useSearchParams();
-  const category = params.get("category") ?? "";
-  const q = params.get("q") ?? "";
-  const [text, setText] = useState(q);
+  const urlQ = params.get("q") ?? "";
+  const urlCat = params.get("cat") ?? "";
+  const cat = RAIL.includes(urlCat) && urlCat !== "All" ? urlCat : "";
 
-  // Keep the URL in step with the search box, after a short pause in typing.
+  const [text, setText] = useState(urlQ);
+  const [query, setQuery] = useState(urlQ);
+  const [sort, setSort] = useState<Sort>("new");
+
+  // A search from the nav changes ?q= while this page may still be kept alive in the background
+  const [seenQ, setSeenQ] = useState(urlQ);
+  if (urlQ !== seenQ) {
+    setSeenQ(urlQ);
+    if (urlQ !== query) {
+      setText(urlQ);
+      setQuery(urlQ);
+    }
+  }
+
+  // Search as people type, without firing on every keystroke
   useEffect(() => {
-    const t = setTimeout(() => {
-      if (text.trim() === q) return;
-      const next = new URLSearchParams(params.toString());
-      if (text.trim()) next.set("q", text.trim());
-      else next.delete("q");
-      router.replace(`${pathname}?${next.toString()}`, { scroll: false });
-    }, 250);
+    const t = setTimeout(() => setQuery(text.trim()), 450);
     return () => clearTimeout(t);
-  }, [text, q, params, pathname, router]);
+  }, [text]);
 
-  const setCategory = (c: string) => {
+  // Keep the URL shareable: ?q=…&cat=…
+  useEffect(() => {
+    const next = new URLSearchParams();
+    if (query) next.set("q", query);
+    if (cat) next.set("cat", cat);
+    const qs = next.toString();
+    if (qs !== params.toString()) router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  }, [query, cat, params, pathname, router]);
+
+  const { currentData, data: lastData, error, isFetching } = useListVideosQuery({ q: query || undefined, category: cat || undefined });
+  // While a new search loads, keep showing the last results instead of flashing empty
+  const data = currentData ?? lastData;
+  const loading = isFetching && !currentData;
+
+  const pickCat = (c: string) => {
     const next = new URLSearchParams(params.toString());
-    if (c) next.set("category", c);
-    else next.delete("category");
-    router.replace(`${pathname}?${next.toString()}`, { scroll: false });
+    if (c === "All") next.delete("cat");
+    else next.set("cat", c);
+    const qs = next.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
   };
 
-  const { data, error, loading } = useApi(() => api.listVideos({ q, category }), [q, category]);
+  const videos = sortVideos(data?.videos ?? [], sort);
+  const count = `${videos.length} ${videos.length === 1 ? "video" : "videos"}`;
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-4">
-        <div className="relative max-w-xl">
-          <Search size={18} className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-muted" />
-          <label htmlFor="browse-search" className="sr-only">
-            Search videos
-          </label>
-          <input
-            id="browse-search"
-            type="search"
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            placeholder="Search by title, creator or tag"
-            className="h-12 w-full rounded-full border border-line bg-white pr-11 pl-11 text-[15px] placeholder:text-faint focus:border-ink focus:ring-4 focus:ring-ink/8 focus:outline-none [&::-webkit-search-cancel-button]:hidden"
-          />
-          {text && (
+    <>
+      <section className="finder wrap" aria-label="Search videos">
+        <SearchBar value={text} onChange={setText} />
+      </section>
+
+      <CategoryRail active={cat || "All"} onPick={pickCat} />
+
+      <section className="wrap" aria-labelledby="results-h">
+        <div className="results-head">
+          <h1 id="results-h" aria-live="polite">
+            {loading ? "Videos" : query ? `${count} for “${query}”` : count}
+          </h1>
+          <SortMenu value={sort} onChange={setSort} />
+        </div>
+
+        {error ? (
+          <div className="empty">
+            <h2>We couldn’t load videos</h2>
+            <p>{errorMessage(error)}</p>
+          </div>
+        ) : loading && !data ? (
+          <Loading label="Loading videos" />
+        ) : videos.length === 0 ? (
+          <div className="empty">
+            <h2>No clips match that yet</h2>
+            <p>Try different words, or describe the moment another way.</p>
             <button
               type="button"
-              onClick={() => setText("")}
-              className="absolute top-1/2 right-3 flex size-7 -translate-y-1/2 items-center justify-center rounded-full text-muted hover:bg-sunken hover:text-ink"
-              aria-label="Clear search"
+              className="btn btn-ghost"
+              onClick={() => {
+                setText("");
+                setQuery("");
+                pickCat("All");
+              }}
             >
-              <X size={16} />
+              Show all videos
             </button>
-          )}
-        </div>
-
-        <ToggleGroup
-          aria-label="Filter by category"
-          value={[category || "all"]}
-          onValueChange={(v) => setCategory(v[0] && v[0] !== "all" ? v[0] : "")}
-          className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0"
-        >
-          <Toggle value="all" className={chip}>
-            All
-          </Toggle>
-          {CATEGORIES.map((c) => (
-            <Toggle key={c} value={c} className={chip}>
-              {c}
-            </Toggle>
-          ))}
-        </ToggleGroup>
-      </div>
-
-      {error ? (
-        <EmptyState title="Couldn't load videos">{error.message}</EmptyState>
-      ) : loading && !data ? (
-        <div className="grid grid-cols-2 gap-x-3 gap-y-5 sm:grid-cols-3 lg:grid-cols-4">
-          {Array.from({ length: 8 }, (_, i) => (
-            <VideoCardSkeleton key={i} />
-          ))}
-        </div>
-      ) : data && data.videos.length === 0 ? (
-        <EmptyState
-          title="No videos match that"
-          action={
-            <LinkButton href="/browse" variant="secondary" size="sm" onClick={() => setText("")}>
-              Clear filters
-            </LinkButton>
-          }
-        >
-          Try a creator&apos;s name, a tag like &ldquo;lagos&rdquo;, or another category.
-        </EmptyState>
-      ) : (
-        <>
-          <p className="text-sm text-muted tabular" aria-live="polite">
-            {data?.videos.length} {data?.videos.length === 1 ? "video" : "videos"}
-            {category && ` in ${category}`}
-            {q && ` matching “${q}”`}
-          </p>
-          <div className={`grid grid-cols-2 gap-x-3 gap-y-5 transition-opacity sm:grid-cols-3 lg:grid-cols-4 ${loading ? "opacity-60" : ""}`}>
-            {data?.videos.map((v) => (
-              <VideoCard key={v.id} video={v} />
+          </div>
+        ) : (
+          <div className="cards">
+            {videos.map((v) => (
+              <ClipCard
+                key={v.id}
+                href={`/videos/${v.id}`}
+                title={v.title}
+                subtitle={v.creator.name}
+                verified={v.creator.verified}
+                durationSec={v.durationSec}
+                thumbnailUrl={v.thumbnailUrl}
+                poster={v.poster}
+                previewUrl={v.previewUrl}
+                badge={isNew(v) ? <span className="badge-new">New</span> : null}
+              />
             ))}
           </div>
-        </>
-      )}
-    </div>
+        )}
+      </section>
+    </>
+  );
+}
+
+function sortVideos(videos: Video[], sort: Sort) {
+  if (sort === "low") return [...videos].sort((a, b) => a.basePriceKobo - b.basePriceKobo);
+  if (sort === "high") return [...videos].sort((a, b) => b.basePriceKobo - a.basePriceKobo);
+  return videos; // the API already returns newest first, or best match first when searching
+}
+
+function isNew(v: Video) {
+  return Date.now() - new Date(v.createdAt).getTime() < NEW_DAYS * 24 * 60 * 60 * 1000;
+}
+
+/** Icon-and-label categories that stick under the nav while scrolling. */
+function CategoryRail({ active, onPick }: { active: string; onPick: (c: string) => void }) {
+  const sentinel = useRef<HTMLDivElement>(null);
+  const [stuck, setStuck] = useState(false);
+  useEffect(() => {
+    if (!sentinel.current) return;
+    const io = new IntersectionObserver(([e]) => setStuck(!e.isIntersecting), { rootMargin: "-140px 0px 0px 0px" });
+    io.observe(sentinel.current);
+    return () => io.disconnect();
+  }, []);
+
+  return (
+    <>
+      <div className={`rail-wrap${stuck ? " is-stuck" : ""}`}>
+        <div className="wrap">
+          <div className="rail" role="group" aria-label="Category">
+            {RAIL.map((c) => {
+              const Icon = CATEGORY_ICONS[c];
+              return (
+                <button key={c} type="button" className="cat-btn" aria-pressed={active === c} onClick={() => onPick(c)}>
+                  <Icon aria-hidden />
+                  {c}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+        <div className="rail-line" />
+      </div>
+      <div ref={sentinel} style={{ height: 1, marginTop: -1 }} aria-hidden />
+    </>
+  );
+}
+
+function SortMenu({ value, onChange }: { value: Sort; onChange: (v: Sort) => void }) {
+  return (
+    <Menu.Root>
+      <Menu.Trigger className="sort-btn" aria-label="Sort videos">
+        <ArrowUpDown aria-hidden />
+        {SORTS.find((s) => s.value === value)!.label}
+      </Menu.Trigger>
+      <Menu.Portal>
+        <Menu.Positioner sideOffset={8} align="end" className="z-50 outline-none">
+          <Menu.Popup className="pop-list">
+            <Menu.RadioGroup value={value} onValueChange={(v) => onChange(v as Sort)}>
+              {SORTS.map((s) => (
+                <Menu.RadioItem key={s.value} value={s.value} className="pop-opt" closeOnClick>
+                  {s.label}
+                  <Check aria-hidden />
+                </Menu.RadioItem>
+              ))}
+            </Menu.RadioGroup>
+          </Menu.Popup>
+        </Menu.Positioner>
+      </Menu.Portal>
+    </Menu.Root>
   );
 }

@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Àmì · Home D, Blend</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Figtree:wght@400..700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="base.css">
+<style>
+  /* Hero: centered copy over a playing video */
+  .hero { padding-top: 8px; }
+  .frame {
+    position: relative; display: grid; place-items: center; overflow: hidden; isolation: isolate;
+    height: min(calc(100svh - 96px), 780px); min-height: 540px; border-radius: 28px; background: #c96f2c;
+  }
+  .frame video { position: absolute; inset: 0; z-index: -2; width: 100%; height: 100%; object-fit: cover; }
+  .frame::before {
+    content: ""; position: absolute; inset: 0; z-index: -1;
+    background:
+      radial-gradient(ellipse 60% 60% at 50% 55%, rgb(12 10 14 / 0.35), transparent 72%),
+      rgb(12 10 14 / 0.5);
+  }
+  .hero-copy { padding: 0 24px; text-align: center; color: #fff; }
+  .hero h1 { font-size: clamp(46px, 6.6vw, 100px); line-height: 0.94; letter-spacing: -0.045em; max-width: 12ch; margin-inline: auto; text-shadow: 0 2px 30px rgb(0 0 0 / 0.25); }
+  .hero p { margin: 22px auto 0; max-width: 36ch; font-size: clamp(18px, 1.5vw, 21px); color: rgb(255 255 255 / 0.9); }
+  .ctas { display: flex; justify-content: center; flex-wrap: wrap; gap: 12px; margin-top: 34px; }
+  .btn-outline-white { color: #fff; box-shadow: inset 0 0 0 1.5px rgb(255 255 255 / 0.65); }
+  .btn-outline-white:hover { box-shadow: inset 0 0 0 1.5px #fff; background: rgb(255 255 255 / 0.08); }
+  .pause {
+    position: absolute; left: 20px; bottom: 20px; width: 44px; height: 44px; border-radius: 50%; border: 0; cursor: pointer;
+    display: grid; place-items: center; background: rgb(255 255 255 / 0.18); color: #fff; backdrop-filter: blur(8px);
+    transition: background-color 0.2s;
+  }
+  .pause:hover { background: rgb(255 255 255 / 0.3); }
+  .pause svg { width: 16px; height: 16px; fill: currentColor; }
+
+  .section { padding-top: clamp(96px, 11vw, 160px); }
+  .center-head { text-align: center; }
+  .center-head h2, .split h2 { font-size: clamp(34px, 4vw, 56px); line-height: 1.02; }
+  .center-head p { margin-top: 14px; color: var(--ink-2); font-size: 18px; }
+
+  .cats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-top: 48px; }
+  /* Category tiles behave like video thumbnails: hover (or scroll into view on touch) plays a muted preview */
+  .cat {
+    position: relative; display: block; aspect-ratio: 3 / 4; overflow: hidden; isolation: isolate;
+    border-radius: var(--radius); background: #141216; color: #fff;
+    transition: transform 0.45s var(--ease), box-shadow 0.45s var(--ease);
+  }
+  .cat:hover, .cat:focus-visible { transform: translateY(-6px); box-shadow: 0 2px 4px rgb(15 15 16 / 0.08), 0 28px 48px -24px rgb(15 15 16 / 0.45); }
+  .cat video { position: absolute; inset: 0; z-index: -2; width: 100%; height: 100%; object-fit: cover; transform: scale(1.02); transition: transform 1.2s var(--ease); }
+  .cat.is-playing video { transform: scale(1.07); }
+  .cat::after {
+    content: ""; position: absolute; inset: 0; z-index: -1;
+    background: linear-gradient(180deg, transparent 52%, rgb(10 8 12 / 0.7) 100%);
+  }
+  .cat-bar { position: absolute; left: 18px; right: 16px; bottom: 18px; display: flex; align-items: baseline; gap: 12px; }
+  .cat-name { font: 700 23px/1 var(--head); letter-spacing: -0.025em; }
+  .cat-time { margin-left: auto; font: 500 14px/1 var(--body); font-variant-numeric: tabular-nums; letter-spacing: 0.01em; color: rgb(255 255 255 / 0.78); }
+
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(40px, 7vw, 112px); align-items: center; }
+  .split .vid { aspect-ratio: 4 / 5; overflow: visible; }
+  .split .vid img { border-radius: var(--radius); }
+  .split .lede { margin-top: 18px; max-width: 40ch; font-size: 18px; color: var(--ink-2); }
+  .steps { list-style: none; margin: 40px 0 0; padding: 0; display: grid; gap: 28px; }
+  .steps li { display: grid; grid-template-columns: 44px 1fr; gap: 18px; align-items: start; }
+  .steps .n { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: var(--brand-wash); color: var(--brand); font: 700 18px/1 var(--head); }
+  .steps b { display: block; font: 700 20px/1.25 var(--head); letter-spacing: -0.02em; margin-top: 2px; }
+  .steps span.muted { font-size: 16px; }
+  .split .float { right: -28px; bottom: 36px; }
+  .split .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 22px; margin-top: 36px; }
+
+  /* Closing band */
+  .close { position: relative; margin-top: clamp(96px, 11vw, 160px); border-radius: 28px; overflow: hidden; isolation: isolate; min-height: 540px; display: grid; place-items: center; text-align: center; color: #fff; }
+  .close img { position: absolute; inset: 0; z-index: -2; width: 100%; height: 100%; object-fit: cover; }
+  .close::before { content: ""; position: absolute; inset: 0; z-index: -1; background: rgb(12 10 14 / 0.5); }
+  .close > div { padding: 56px 24px; }
+  .close h2 { font-size: clamp(44px, 6.4vw, 96px); line-height: 0.94; letter-spacing: -0.045em; }
+  .close .ctas { margin-top: 34px; }
+  .foot { margin-top: clamp(72px, 8vw, 112px); }
+
+  @media (max-width: 860px) {
+    .frame { height: 82svh; min-height: 560px; border-radius: 22px; }
+    .hero h1 { font-size: 40px; }
+    .pause { top: 14px; right: 14px; left: auto; bottom: auto; width: 40px; height: 40px; }
+    .cats { grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 32px; }
+    .cat-bar { left: 14px; right: 12px; bottom: 14px; gap: 9px; }
+    .cat-name { font-size: 18px; }
+    .cat-time { font-size: 12px; }
+    .split { grid-template-columns: 1fr; }
+    .split.rev .vid { order: 2; }
+    .split .float { right: 12px; bottom: -20px; }
+    .close { min-height: 460px; border-radius: 22px; }
+  }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M4.5 12.5 9.5 17.5 19.5 6.5"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 8h16M4 16h16"/></symbol>
+  <symbol id="i-pause" viewBox="0 0 24 24"><rect x="6" y="4.5" width="4" height="15" rx="1.2"/><rect x="14" y="4.5" width="4" height="15" rx="1.2"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12.5-7.5a1 1 0 0 0 0-1.72L8.5 3.64A1 1 0 0 0 7 4.5Z"/></symbol>
+</svg>
+
+<header class="nav">
+  <div class="wrap nav-in">
+    <a class="logo" href="d.html" aria-label="Àmì home"><span class="m m-a">A</span>m<span class="m m-i">ı</span></a>
+    <nav class="nav-links" aria-label="Main"><a href="browse.html">Browse</a><a href="#creators">For creators</a><a href="check.html">Check a licence</a></nav>
+    <div class="nav-end">
+      <a class="login" href="login.html">Log in</a>
+      <a class="btn btn-ink btn-sm" href="signup.html">Sign up</a>
+      <button class="nav-menu" aria-label="Open menu"><svg class="icon" style="width:22px;height:22px"><use href="#i-menu"/></svg></button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="hero wrap">
+    <div class="frame">
+      <video id="hero-video" autoplay muted loop playsinline preload="auto"
+        poster="https://images.pexels.com/videos/5664462/african-dancing-headphones-listening-5664462.jpeg?auto=compress&cs=tinysrgb&w=1600"
+        src="https://videos.pexels.com/video-files/5664462/5664462-hd_1280_720_50fps.mp4"></video>
+      <div class="hero-copy">
+        <h1>License videos from creators you love.</h1>
+        <p>Use their clips in your own content, legally. They get paid every time.</p>
+        <div class="ctas">
+          <a class="btn btn-white" href="browse.html">Browse videos</a>
+          <a class="btn btn-outline-white" href="#creators">Sell your videos</a>
+        </div>
+      </div>
+      <button class="pause" id="pause" aria-label="Pause background video"><svg><use href="#i-pause"/></svg></button>
+    </div>
+  </section>
+
+  <section class="section wrap" aria-labelledby="cats-h">
+    <div class="center-head">
+      <h2 id="cats-h">Clips for every kind of video</h2>
+      <p>Skits, recipes, dance and owambe, straight from the people who made them.</p>
+    </div>
+    <div class="cats">
+      <a class="cat" href="browse.html?cat=Comedy" aria-label="Comedy clips">
+        <video muted loop playsinline preload="none" poster="https://images.pexels.com/videos/4994037/pexels-photo-4994037.jpeg?auto=compress&cs=tinysrgb&fit=crop&w=600&h=800" data-src="https://videos.pexels.com/video-files/4994037/4994037-sd_960_540_25fps.mp4"></video>
+        <span class="cat-bar"><span class="cat-name">Comedy</span><span class="cat-time" data-total="0:16">0:16</span></span>
+      </a>
+      <a class="cat" href="browse.html?cat=Food" aria-label="Food clips">
+        <video muted loop playsinline preload="none" poster="https://images.pexels.com/videos/10200311/pexels-photo-10200311.jpeg?auto=compress&cs=tinysrgb&fit=crop&w=600&h=800" data-src="https://videos.pexels.com/video-files/10200311/10200311-sd_540_960_25fps.mp4"></video>
+        <span class="cat-bar"><span class="cat-name">Food</span><span class="cat-time" data-total="0:05">0:05</span></span>
+      </a>
+      <a class="cat" href="browse.html?cat=Dance" aria-label="Dance clips">
+        <video muted loop playsinline preload="none" poster="https://images.pexels.com/videos/27865969/cultural-dance-from-nigeria-27865969.jpeg?auto=compress&cs=tinysrgb&fit=crop&w=600&h=800" data-src="https://videos.pexels.com/video-files/27865969/12248475_960_540_50fps.mp4"></video>
+        <span class="cat-bar"><span class="cat-name">Dance</span><span class="cat-time" data-total="0:09">0:09</span></span>
+      </a>
+      <a class="cat" href="browse.html?cat=Owambe" aria-label="Owambe clips">
+        <video muted loop playsinline preload="none" poster="https://images.pexels.com/videos/38299944/pexels-photo-38299944.jpeg?auto=compress&cs=tinysrgb&fit=crop&w=600&h=800" data-src="https://videos.pexels.com/video-files/38299944/16262944_540_960_24fps.mp4" data-loop-end="8"></video>
+        <span class="cat-bar"><span class="cat-name">Owambe</span><span class="cat-time" data-total="0:32">0:32</span></span>
+      </a>
+    </div>
+  </section>
+
+  <section class="section wrap split" aria-labelledby="how-h">
+    <div>
+      <h2 id="how-h">Three steps. No wahala.</h2>
+      <ol class="steps">
+        <li><span class="n">1</span><div><b>Find a clip</b><span class="muted">Search skits, food, dance and more.</span></div></li>
+        <li><span class="n">2</span><div><b>Choose the part and how long</b><span class="muted">The whole video or a clip, for a month or forever.</span></div></li>
+        <li><span class="n">3</span><div><b>Pay once and post</b><span class="muted">Get the clean file and your licence.</span></div></li>
+      </ol>
+    </div>
+    <div class="vid">
+      <img src="https://images.unsplash.com/photo-1677935711525-1059c0cb9b44?auto=format&fit=crop&crop=faces&w=900&h=1125&q=75" alt="">
+    </div>
+  </section>
+
+  <section class="section wrap split rev" id="creators" aria-labelledby="creators-h">
+    <div class="vid">
+      <img src="https://images.unsplash.com/photo-1680878790148-18c83f270499?auto=format&fit=crop&crop=faces&w=900&h=1125&q=75" alt="">
+    </div>
+    <div>
+      <h2 id="creators-h">Get paid when people reuse your videos.</h2>
+      <p class="lede">List your videos, set your own prices, and keep 85% of every sale.</p>
+      <div class="actions">
+        <a class="btn btn-ink" href="signup.html">Start selling</a>
+        <a class="link" href="#">How payouts work <svg class="icon"><use href="#i-arrow"/></svg></a>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap">
+    <div class="close">
+      <img src="https://images.unsplash.com/photo-1785094165691-643aa8db87ca?auto=format&fit=crop&w=2000&h=1000&q=75" alt="">
+      <div>
+        <h2>Your work.<br>Your mark.<br>Your money.</h2>
+        <div class="ctas">
+          <a class="btn btn-white" href="signup.html">Join Àmì free</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="wrap foot-in">
+    <a class="logo" href="d.html" aria-label="Àmì home"><span class="m m-a">A</span>m<span class="m m-i">ı</span></a>
+    <span>Your work. Your mark. Your money.</span>
+    <nav aria-label="Footer"><a href="browse.html">Browse</a><a href="#creators">For creators</a><a href="check.html">Check a licence</a><a href="#">Help</a></nav>
+  </div>
+</footer>
+
+<nav class="switch" aria-label="Mockup screens"><a href="d.html" aria-current="page">Home</a><a href="browse.html">Browse</a><a href="video.html">Video</a><a href="upload.html">Upload</a></nav>
+
+<script>
+  const video = document.getElementById("hero-video");
+  const btn = document.getElementById("pause");
+  const setIcon = (playing) => {
+    btn.innerHTML = `<svg><use href="#i-${playing ? "pause" : "play"}"/></svg>`;
+    btn.setAttribute("aria-label", playing ? "Pause background video" : "Play background video");
+  };
+  btn.addEventListener("click", () => { video.paused ? video.play() : video.pause(); });
+  video.addEventListener("play", () => setIcon(true));
+  video.addEventListener("pause", () => setIcon(false));
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) { video.removeAttribute("autoplay"); video.pause(); setIcon(false); }
+  // Category previews: hover/focus plays on desktop; on touch, a tile plays while it is mostly in view.
+  const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const finePointer = matchMedia("(hover: hover) and (pointer: fine)").matches;
+  document.querySelectorAll(".cat").forEach((tile) => {
+    const v = tile.querySelector("video"), end = parseFloat(tile.querySelector("video").dataset.loopEnd);
+    tile.play = () => { if (reduceMotion) return; if (!v.src) v.src = v.dataset.src; v.play().catch(() => {}); };
+    tile.stop = () => v.pause();
+    v.addEventListener("playing", () => tile.classList.add("is-playing"));
+    v.addEventListener("pause", () => tile.classList.remove("is-playing"));
+    if (end) v.addEventListener("timeupdate", () => { if (v.currentTime >= end) v.currentTime = 0; });
+    if (finePointer) {
+      tile.addEventListener("mouseenter", tile.play);
+      tile.addEventListener("mouseleave", tile.stop);
+      tile.addEventListener("focus", tile.play);
+      tile.addEventListener("blur", tile.stop);
+    }
+  });
+  if (!finePointer && !reduceMotion && "IntersectionObserver" in window) {
+    const io = new IntersectionObserver((entries) => entries.forEach((e) => (e.intersectionRatio >= 0.75 ? e.target.play() : e.target.stop())), { threshold: [0, 0.75] });
+    document.querySelectorAll(".cat").forEach((t) => io.observe(t));
+  }
+</script>
+<script src="screens.js"></script>
+</body>
+</html>

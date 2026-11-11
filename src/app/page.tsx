@@ -1,188 +1,192 @@
-import { ArrowRight, BadgeCheck, Download, FileCheck2, Search, Tag, Upload, Wallet } from "lucide-react";
 import Link from "next/link";
-import { LinkButton } from "@/components/ui/button";
-import { Container } from "@/components/ui/page";
-import { formatNaira } from "@/lib/format";
-import { DURATIONS, USE_TYPES } from "@/lib/pricing";
-import { CheckForm } from "./_components/check-form";
-import { HeroPhone } from "./_components/hero-phone";
-import { LatestVideos } from "./_components/latest-videos";
+import { TestLoginButton } from "@/components/test-login-button";
+import { CategoryTile } from "./_components/category-tile";
+import { AgentChat, type AgentHit } from "./_components/agent-chat";
+import { HeroVideo } from "./_components/hero-video";
+import { McpConnect } from "./_components/mcp-connect";
+import { PartDemo } from "./_components/part-demo";
+import { VertexLines } from "./_components/vertex-lines";
+import "./home.css";
 
-const creatorSteps = [
-  { icon: Upload, title: "Upload your skit", body: "Àmì fingerprints the file and timestamps it, so there's a record of what you made and when." },
-  { icon: Tag, title: "Set three prices", body: "One base price each for Repost, Social and Advert. Duration and platform adjust it for you." },
-  { icon: Wallet, title: "Get paid in naira", body: "Every licence shows up in your library with who bought it, where they can post it and until when." },
+// Placeholder media (Pexels clips, Unsplash photos) until creators' real videos are in.
+const PEXELS = "https://images.pexels.com/videos/";
+const CLIPS = "https://videos.pexels.com/video-files/";
+const UNSPLASH = "https://images.unsplash.com/";
+
+const CATEGORIES = [
+  { name: "Comedy", still: `${PEXELS}4994037/pexels-photo-4994037.jpeg?auto=compress&cs=tinysrgb&fit=crop&w=600&h=800`, clip: `${CLIPS}4994037/4994037-sd_960_540_25fps.mp4`, durationSec: 16 },
+  { name: "Food", still: `${PEXELS}10200311/pexels-photo-10200311.jpeg?auto=compress&cs=tinysrgb&fit=crop&w=600&h=800`, clip: `${CLIPS}10200311/10200311-sd_540_960_25fps.mp4`, durationSec: 5 },
+  { name: "Dance", still: `${PEXELS}27865969/cultural-dance-from-nigeria-27865969.jpeg?auto=compress&cs=tinysrgb&fit=crop&w=600&h=800`, clip: `${CLIPS}27865969/12248475_960_540_50fps.mp4`, durationSec: 9 },
+  { name: "Owambe", still: `${PEXELS}38299944/pexels-photo-38299944.jpeg?auto=compress&cs=tinysrgb&fit=crop&w=600&h=800`, clip: `${CLIPS}38299944/16262944_540_960_24fps.mp4`, durationSec: 32, loopEndSec: 8 },
 ];
 
-const buyerSteps = [
-  { icon: Search, title: "Find a clip", body: "Search by title, creator or tag, and watch the watermarked preview." },
-  { icon: FileCheck2, title: "Pick your licence", body: "Choose the use, the platform and the account it covers. The price updates as you choose." },
-  { icon: Download, title: "Download and post", body: "Pay by transfer or card, then download the clean file and a certificate with a QR code." },
+// The same clip twice: all of it, and just a part
+const DEMO = {
+  src: `${CLIPS}4994037/4994037-sd_960_540_25fps.mp4`,
+  stripSrc: `${CLIPS}4994037/4994037-sd_960_540_25fps.mp4`,
+  poster: `${PEXELS}4994037/pexels-photo-4994037.jpeg?auto=compress&cs=tinysrgb&w=1200`,
+  durationSec: 16,
+};
+
+// What an agent finds when it searches Àmì (clips from the demo catalogue, with the moment it picked)
+const AGENT_HITS: AgentHit[] = [
+  {
+    title: "Owambe aunty seat negotiations",
+    by: "Kemi Johnson",
+    clip: `${CLIPS}37964255/16109125_540_960_24fps.mp4`,
+    still: `${PEXELS}37964255/pexels-photo-37964255.jpeg?auto=compress&cs=tinysrgb&fit=crop&w=480&h=360`,
+    lengthSec: 28,
+    start: 12,
+    end: 18,
+  },
+  {
+    title: "Shoki footwork in 60 seconds",
+    by: "Kemi Johnson",
+    clip: `${CLIPS}8956007/8956007-sd_540_960_25fps.mp4`,
+    still: `${PEXELS}8956007/pexels-photo-8956007.jpeg?auto=compress&cs=tinysrgb&fit=crop&w=480&h=360`,
+    lengthSec: 15,
+    start: 3,
+    end: 8,
+  },
 ];
 
 export default function Home() {
   return (
-    <>
-      {/* Hero */}
-      <section className="overflow-hidden">
-        <Container className="grid items-center gap-14 pt-12 pb-20 sm:pt-16 lg:grid-cols-[1.15fr_1fr] lg:pt-20 lg:pb-24">
-          <div className="flex flex-col gap-7">
-            <span className="inline-flex w-fit items-center gap-2 rounded-full border border-line bg-white px-3 py-1.5 text-[13px] font-semibold text-muted">
-              <span className="size-1.5 rounded-full bg-ember" aria-hidden />
-              For Nigerian video creators, pages and brands
-            </span>
-            <h1 className="max-w-xl text-[44px] leading-[1.02] font-semibold tracking-[-0.04em] sm:text-6xl lg:text-[68px]">
-              Turn stolen clips into paid licences.
-            </h1>
-            <p className="max-w-md text-[17px] leading-relaxed text-muted">
-              Creators list their videos. Pages and brands pay in naira for a licence, a clean file and a certificate anyone can check.
-            </p>
-            <div className="flex flex-wrap items-center gap-3">
-              <LinkButton href="/signup" size="lg">
-                Sign up free
-              </LinkButton>
-              <LinkButton href="/browse" variant="secondary" size="lg">
+    <div className="p-home">
+      <section className="hero wrap">
+        <div className="frame">
+          <HeroVideo
+            src={`${CLIPS}5664462/5664462-hd_1280_720_50fps.mp4`}
+            poster={`${PEXELS}5664462/african-dancing-headphones-listening-5664462.jpeg?auto=compress&cs=tinysrgb&w=1600`}
+          />
+          <div className="hero-copy">
+            <h1>License videos from creators you love.</h1>
+            <p>Use their clips in your own content, legally. They get paid every time.</p>
+            <div className="ctas">
+              <Link className="btn btn-white" href="/browse">
                 Browse videos
-              </LinkButton>
+              </Link>
+              <a className="btn btn-outline-white" href="#creators">
+                Sell your videos
+              </a>
             </div>
-            <p className="flex items-center gap-2 text-sm text-muted">
-              <BadgeCheck size={16} className="text-ember" />
-              One account to upload and to license. Pay by transfer or card.
-            </p>
-
-            <dl className="mt-6 grid max-w-xl grid-cols-3 gap-6 border-t border-line pt-8">
-              <div className="flex flex-col gap-1">
-                <dt className="order-2 text-[13px] leading-snug text-muted">of every sale goes to the creator</dt>
-                <dd className="order-1 text-3xl font-semibold tracking-tight tabular sm:text-[34px]">85%</dd>
-              </div>
-              <div className="flex flex-col gap-1">
-                <dt className="order-2 text-[13px] leading-snug text-muted">licences start from, for 30 days</dt>
-                <dd className="order-1 text-3xl font-semibold tracking-tight tabular sm:text-[34px]">₦10k</dd>
-              </div>
-              <div className="flex flex-col gap-1">
-                <dt className="order-2 text-[13px] leading-snug text-muted">scan to prove a licence is real</dt>
-                <dd className="order-1 text-3xl font-semibold tracking-tight tabular sm:text-[34px]">1</dd>
-              </div>
-            </dl>
           </div>
-
-          <HeroPhone />
-        </Container>
+        </div>
       </section>
 
-      {/* Latest videos */}
-      <section className="border-t border-line bg-white/50 py-16">
-        <Container className="flex flex-col gap-8">
-          <div className="flex items-end justify-between gap-4">
-            <div className="flex flex-col gap-2">
-              <span className="text-xs font-bold tracking-[0.12em] text-ember-ink uppercase">Fresh on Àmì</span>
-              <h2 className="text-3xl font-semibold sm:text-4xl">Skits ready to license</h2>
-            </div>
-            <Link href="/browse" className="flex shrink-0 items-center gap-1.5 text-sm font-semibold text-ink hover:underline">
-              Browse all <ArrowRight size={16} />
+      <section className="section wrap" aria-labelledby="cats-h">
+        <div className="center-head">
+          <h2 id="cats-h">Clips for every kind of video</h2>
+          <p>Skits, recipes, dance and owambe, straight from the people who made them.</p>
+        </div>
+        <div className="cats">
+          {CATEGORIES.map((c) => (
+            <CategoryTile key={c.name} {...c} />
+          ))}
+        </div>
+      </section>
+
+      <section className="section wrap split" aria-labelledby="how-h">
+        <div>
+          <h2 id="how-h">Three steps. No wahala.</h2>
+          <ol className="steps">
+            <li>
+              <span className="n">1</span>
+              <div>
+                <b>Find a clip</b>
+                <span>Search skits, food, dance and more.</span>
+              </div>
+            </li>
+            <li>
+              <span className="n">2</span>
+              <div>
+                <b>Choose the part and how long</b>
+                <span>The whole video or a clip, for a month or forever.</span>
+              </div>
+            </li>
+            <li>
+              <span className="n">3</span>
+              <div>
+                <b>Pay once and post</b>
+                <span>Get the clean file and your licence.</span>
+              </div>
+            </li>
+          </ol>
+        </div>
+        <div className="pic">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={`${UNSPLASH}photo-1677935711525-1059c0cb9b44?auto=format&fit=crop&crop=faces&w=900&h=1125&q=75`} alt="" loading="lazy" />
+        </div>
+      </section>
+
+      <section className="section wrap" aria-labelledby="part-h">
+        <div className="center-head">
+          <h2 id="part-h">The whole video, or just the part you need.</h2>
+          <p>Pay for the seconds you use, for a month, a year or forever.</p>
+        </div>
+        <div className="parts">
+          <PartDemo label="Whole video" {...DEMO} />
+          <PartDemo label="Just a part" {...DEMO} start={4} end={10} />
+        </div>
+      </section>
+
+      <section className="section wrap split rev" id="creators" aria-labelledby="creators-h">
+        <div className="pic">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={`${UNSPLASH}photo-1680878790148-18c83f270499?auto=format&fit=crop&crop=faces&w=900&h=1125&q=75`} alt="" loading="lazy" />
+        </div>
+        <div>
+          <h2 id="creators-h">Get paid when people reuse your videos.</h2>
+          <p className="lede">List your videos, set your own prices, and keep 85% of every sale.</p>
+          <div className="actions">
+            <Link className="btn btn-ink" href="/upload">
+              Start selling
             </Link>
           </div>
-          <LatestVideos />
-        </Container>
+        </div>
       </section>
 
-      {/* How it works */}
-      <section id="how-it-works" className="scroll-mt-20 py-20">
-        <Container className="flex flex-col gap-10">
-          <div className="flex max-w-2xl flex-col gap-3">
-            <span className="text-xs font-bold tracking-[0.12em] text-ember-ink uppercase">How it works</span>
-            <h2 className="text-3xl font-semibold sm:text-4xl">Every repost can be a paid, legal licence.</h2>
+      <section className="section wrap" aria-labelledby="agents-h">
+        <div className="agents">
+          <VertexLines />
+          <div className="agents-copy">
+            <h2 id="agents-h">Built for AI agents too.</h2>
+            <p className="lede">Connect your agent to Àmì over MCP. It can search every video, find the exact moment and get it licensed for you.</p>
+            <McpConnect />
           </div>
-          <div className="grid gap-4 lg:grid-cols-2">
-            {[
-              { title: "If you make videos", steps: creatorSteps, cta: { href: "/upload", label: "Upload a video" } },
-              { title: "If you run a page or brand", steps: buyerSteps, cta: { href: "/browse", label: "Find a clip" } },
-            ].map((col) => (
-              <div key={col.title} className="flex flex-col gap-6 rounded-3xl border border-line bg-white p-6 sm:p-8">
-                <h3 className="text-xl font-bold">{col.title}</h3>
-                <ol className="flex flex-col gap-5">
-                  {col.steps.map((s, i) => (
-                    <li key={s.title} className="grid grid-cols-[2.5rem_1fr] gap-4">
-                      <span className="flex size-10 items-center justify-center rounded-full bg-sunken text-ink ring-1 ring-line">
-                        <s.icon size={18} />
-                      </span>
-                      <div className="flex flex-col gap-1">
-                        <p className="font-bold">
-                          <span className="mr-2 text-faint tabular">{i + 1}.</span>
-                          {s.title}
-                        </p>
-                        <p className="text-[15px] leading-relaxed text-muted">{s.body}</p>
-                      </div>
-                    </li>
-                  ))}
-                </ol>
-                <Link href={col.cta.href} className="mt-auto flex w-fit items-center gap-1.5 text-sm font-semibold hover:underline">
-                  {col.cta.label} <ArrowRight size={16} />
-                </Link>
-              </div>
-            ))}
-          </div>
-        </Container>
+          <AgentChat
+            ask="Find me a few seconds of people dancing at an owambe for our party ad."
+            query="dancing at an owambe"
+            hits={AGENT_HITS}
+            reply={
+              <>
+                I found 2 clips. Shall I license <span className="nw">0:12 – 0:18</span> of the first one for a month?
+              </>
+            }
+          />
+        </div>
       </section>
 
-      {/* Pricing */}
-      <section id="pricing" className="scroll-mt-20 border-t border-line bg-white/50 py-20">
-        <Container className="flex flex-col gap-10">
-          <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-            <div className="flex max-w-xl flex-col gap-3">
-              <span className="text-xs font-bold tracking-[0.12em] text-ember-ink uppercase">Licences and pricing</span>
-              <h2 className="text-3xl font-semibold sm:text-4xl">Three licence types. Creators set the price.</h2>
+      <section className="wrap">
+        <div className="close">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={`${UNSPLASH}photo-1785094165691-643aa8db87ca?auto=format&fit=crop&w=2000&h=1000&q=75`} alt="" loading="lazy" />
+          <div>
+            <h2>
+              Your work.
+              <br />
+              Your mark.
+              <br />
+              Your money.
+            </h2>
+            <div className="ctas">
+              <TestLoginButton className="btn btn-white" then="/upload">
+                Join Àmì free
+              </TestLoginButton>
             </div>
-            <p className="max-w-sm text-[15px] leading-relaxed text-muted">
-              Prices below are the suggested base for 30 days on one platform. Àmì keeps 15% of each sale.
-            </p>
           </div>
-          <div className="grid gap-4 md:grid-cols-3">
-            {USE_TYPES.map((u) => (
-              <div key={u.value} className="flex flex-col gap-4 rounded-3xl border border-line bg-white p-6">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-bold">{u.label}</h3>
-                  <span className="text-[13px] text-muted">{u.forWho}</span>
-                </div>
-                <p className="text-[34px] leading-none font-semibold tracking-tight tabular">
-                  {formatNaira(u.suggestedKobo)}
-                  <span className="ml-1 text-sm font-medium tracking-normal text-muted">from</span>
-                </p>
-                <p className="text-[15px] leading-relaxed text-muted">{u.allows}</p>
-              </div>
-            ))}
-          </div>
-          <div className="flex flex-col gap-4 rounded-3xl border border-line bg-white p-6 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-[15px] font-semibold">Longer or wider licences cost more:</p>
-            <ul className="flex flex-wrap gap-2">
-              {DURATIONS.map((d) => (
-                <li key={d.value} className="rounded-full bg-sunken px-3 py-1.5 text-[13px] font-semibold ring-1 ring-line">
-                  {d.label} <span className="text-muted tabular">×{d.multiplier}</span>
-                </li>
-              ))}
-              <li className="rounded-full bg-sunken px-3 py-1.5 text-[13px] font-semibold ring-1 ring-line">
-                All platforms <span className="text-muted tabular">×2</span>
-              </li>
-            </ul>
-          </div>
-        </Container>
+        </div>
       </section>
-
-      {/* Check */}
-      <section className="py-20">
-        <Container>
-          <div className="relative flex flex-col gap-8 overflow-hidden rounded-[32px] bg-ink px-6 py-12 text-white sm:px-12 md:flex-row md:items-center md:justify-between">
-            <div className="flex max-w-md flex-col gap-3">
-              <h2 className="text-3xl font-semibold sm:text-4xl">Got a certificate? Check it.</h2>
-              <p className="text-[15px] leading-relaxed text-white/65">
-                Scan the QR code on any Àmì certificate, or type the licence number. You&apos;ll see the video, who licensed it, where they can post it and until when.
-              </p>
-            </div>
-            <CheckForm />
-            <div className="pointer-events-none absolute -top-24 -right-24 size-72 rounded-full bg-ember/25 blur-3xl" aria-hidden />
-          </div>
-        </Container>
-      </section>
-    </>
+    </div>
   );
 }

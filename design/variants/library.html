@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Àmì · My library</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Figtree:wght@400..700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="base.css">
+<link rel="stylesheet" href="app.css">
+<style>
+  .head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; }
+  .earned { margin-top: 14px; font-size: 18px; color: var(--ink-2); }
+  .earned b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .tabs { margin-top: 40px; }
+  .panel { padding-top: 32px; }
+
+  .hide-badge { position: absolute; top: 12px; left: 12px; height: 26px; padding: 0 11px; display: inline-flex; align-items: center; border-radius: 999px; background: rgb(255 255 255 / 0.92); font: 600 12.5px/1 var(--body); color: var(--ink); }
+  .card.is-hidden .thumb img { filter: grayscale(0.6); opacity: 0.75; }
+
+  /* Sales and bought lists */
+  .list { margin: 0; padding: 0; list-style: none; }
+  .list li { display: grid; grid-template-columns: 112px minmax(0, 1.4fr) minmax(0, 1fr) auto; align-items: center; gap: 24px; padding: 18px 0; border-bottom: 1px solid var(--line); }
+  #sales li { grid-template-columns: 112px minmax(0, 1.4fr) minmax(0, 1fr) 120px; }
+  .list li:first-child { padding-top: 0; }
+  .list img { width: 112px; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 12px; background: #141216; }
+  .list .t { min-width: 0; }
+  .list .t b { display: block; font: 600 16px/1.35 var(--body); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .list .t span, .list .what { display: block; margin-top: 2px; font-size: 15px; color: var(--ink-2); }
+  .list .what { margin-top: 0; }
+  .list .amt { font: 600 16px/1 var(--body); font-variant-numeric: tabular-nums; text-align: right; }
+  .list .acts { display: flex; gap: 8px; }
+  .list .acts .btn { height: 40px; padding: 0 16px; font-size: 14px; }
+
+  @media (max-width: 860px) {
+    .head { flex-direction: column; align-items: flex-start; gap: 20px; }
+    .head .btn { width: 100%; }
+    .tabs { margin-top: 32px; gap: 24px; }
+    .list li { grid-template-columns: 88px minmax(0, 1fr) auto; gap: 4px 14px; }
+    .list img { width: 88px; grid-row: span 2; }
+    .list .what { grid-column: 2; grid-row: 2; font-size: 14px; }
+    .list .amt { grid-column: 3; grid-row: 1; }
+    .list .acts { grid-column: 2 / -1; grid-row: 3; margin-top: 10px; }
+  }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 8h16M4 16h16"/></symbol>
+  <symbol id="i-up" viewBox="0 0 24 24"><path d="M12 16V4M6 10l6-6 6 6"/><path d="M4 20h16"/></symbol>
+</svg>
+
+<header class="nav">
+  <div class="wrap nav-in">
+    <a class="logo" href="d.html" aria-label="Àmì home"><span class="m m-a">A</span>m<span class="m m-i">ı</span></a>
+    <nav class="nav-links" aria-label="Main"><a href="browse.html">Browse</a><a href="d.html#creators">For creators</a><a href="check.html">Check a licence</a></nav>
+    <div class="nav-end">
+      <a class="login lib" href="library.html" aria-current="page">My library</a>
+      <img class="avatar" src="https://images.unsplash.com/photo-1768244017009-ae72704195cb?auto=format&fit=crop&crop=faces&w=96&h=96&q=75" alt="Your account">
+      <button class="nav-menu" aria-label="Open menu"><svg class="icon" style="width:22px;height:22px"><use href="#i-menu"/></svg></button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap page">
+  <div class="head">
+    <div class="page-head">
+      <h1>My library</h1>
+      <p class="earned"><b>₦39,100</b> earned from <b>6</b> licences</p>
+    </div>
+    <a class="btn btn-ink" href="upload.html"><svg class="icon"><use href="#i-up"/></svg>Upload a video</a>
+  </div>
+
+  <div class="tabs" role="tablist" aria-label="Library">
+    <button role="tab" aria-selected="true" aria-controls="p-videos" id="t-videos">Videos (4)</button>
+    <button role="tab" aria-selected="false" aria-controls="p-sales" id="t-sales">Sales (6)</button>
+    <button role="tab" aria-selected="false" aria-controls="p-bought" id="t-bought">Bought (1)</button>
+  </div>
+
+  <section class="panel" role="tabpanel" id="p-videos" aria-labelledby="t-videos"><div class="cards" id="videos"></div></section>
+  <section class="panel" role="tabpanel" id="p-sales" aria-labelledby="t-sales" hidden><ul class="list" id="sales"></ul></section>
+  <section class="panel" role="tabpanel" id="p-bought" aria-labelledby="t-bought" hidden><ul class="list" id="bought"></ul></section>
+</main>
+
+<footer class="foot">
+  <div class="wrap foot-in">
+    <a class="logo" href="d.html" aria-label="Àmì home"><span class="m m-a">A</span>m<span class="m m-i">ı</span></a>
+    <span>Your work. Your mark. Your money.</span>
+    <nav aria-label="Footer"><a href="browse.html">Browse</a><a href="d.html#creators">For creators</a><a href="check.html">Check a licence</a><a href="#">Help</a></nav>
+  </div>
+</footer>
+
+<script>
+  const P = "https://images.pexels.com/videos/";
+  const img = (p, w, h) => `${P}${p}.jpeg?auto=compress&cs=tinysrgb&fit=crop&w=${w}&h=${h}`;
+  const naira = (n) => "₦" + n.toLocaleString("en-NG");
+  // Tolu Adeyemi's demo library
+  const VIDEOS = {
+    nepa: { t: "When the light comes back at 3am", d: "0:58", img: "8496469/adult-bald-black-model-business-8496469" },
+    mum: { t: "My mum when I say I’m not hungry", d: "0:42", img: "7594690/access-adult-african-american-analyzing-7594690" },
+    startup: { t: "First day at a Lagos startup", d: "1:14", img: "4994033/pexels-photo-4994033" },
+    exam: { t: "Exam season in a Nigerian home", d: "1:36", img: "5664462/african-dancing-headphones-listening-5664462", hidden: true },
+  };
+  const SALES = [
+    { v: "nepa", to: "Zobo & Co.", when: "8 Nov", what: "0:12 – 0:22 · 1 month", you: 1275 },
+    { v: "mum", to: "Gist Central", when: "6 Nov", what: "Whole video · forever", you: 17000 },
+    { v: "startup", to: "Kemi Johnson", when: "2 Nov", what: "Whole video · 3 months", you: 8500 },
+    { v: "nepa", to: "Chinedu Okafor", when: "30 Oct", what: "0:30 – 0:58 · 1 year", you: 6375 },
+    { v: "mum", to: "Aisha Bello", when: "27 Oct", what: "0:05 – 0:20 · 1 month", you: 1700 },
+    { v: "nepa", to: "Zobo & Co.", when: "21 Oct", what: "Whole video · 1 month", you: 4250 },
+  ];
+
+  document.getElementById("videos").innerHTML = Object.entries(VIDEOS).map(([k, v]) => {
+    const sold = SALES.filter((s) => s.v === k), earned = sold.reduce((a, s) => a + s.you, 0);
+    const line = sold.length ? `${sold.length} licence${sold.length > 1 ? "s" : ""} · ${naira(earned)}` : "No licences yet";
+    return `<a class="card ${v.hidden ? "is-hidden" : ""}" href="video.html">
+      <div class="thumb"><img src="${img(v.img, 600, 750)}" alt="">${v.hidden ? '<span class="hide-badge">Hidden</span>' : ""}<span class="dur">${v.d}</span></div>
+      <div class="info"><h3>${v.t}</h3><p>${line}</p></div></a>`;
+  }).join("");
+
+  document.getElementById("sales").innerHTML = SALES.map((s) => `
+    <li><img src="${img(VIDEOS[s.v].img, 224, 126)}" alt="">
+      <div class="t"><b>${VIDEOS[s.v].t}</b><span>${s.to} · ${s.when}</span></div>
+      <span class="what">${s.what}</span>
+      <span class="amt">${naira(s.you)}</span></li>`).join("");
+
+  document.getElementById("bought").innerHTML = `
+    <li><img src="${img("10200319/pexels-photo-10200319", 224, 126)}" alt="">
+      <div class="t"><b>Jollof wars: Lagos vs. Accra</b><span>by Aisha Bello</span></div>
+      <span class="what">Whole video · until 3 Dec 2026</span>
+      <span class="acts"><a class="btn btn-ink" href="#">Download</a><a class="btn btn-ghost" href="certificate.html">Certificate</a></span></li>`;
+
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function select(tab) {
+    tabs.forEach((t) => { const on = t === tab; t.setAttribute("aria-selected", String(on)); document.getElementById(t.getAttribute("aria-controls")).hidden = !on; });
+    history.replaceState(null, "", `?tab=${tab.id.slice(2)}`);
+  }
+  tabs.forEach((t) => t.addEventListener("click", () => select(t)));
+  const start = document.getElementById(`t-${new URLSearchParams(location.search).get("tab")}`);
+  if (start) select(start);
+</script>
+<script src="screens.js"></script>
+</body>
+</html>

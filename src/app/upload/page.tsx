@@ -1,8 +1,13 @@
 import type { Metadata } from "next";
-import { UploadForm } from "./_components/upload-form";
+import { UploadView } from "./_components/upload-view";
+import "./upload.css";
 
 export const metadata: Metadata = { title: "Upload a video" };
 
 export default function UploadPage() {
-  return <UploadForm />;
+  return (
+    <div className="p-upload wrap page">
+      <UploadView />
+    </div>
+  );
 }

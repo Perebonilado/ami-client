@@ -42,3 +42,6 @@ next-env.d.ts
 
 # local tool caches
 .openvisio/
+
+# design review screenshots (large, local only)
+.impeccable/review/

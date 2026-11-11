@@ -1,38 +1,43 @@
 import type { Metadata } from "next";
-import { Geist_Mono, Manrope } from "next/font/google";
-import { AuthProvider } from "@/components/auth-provider";
+import { Bricolage_Grotesque, Figtree } from "next/font/google";
+import { Suspense } from "react";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader, SiteHeaderFallback } from "@/components/site-header";
-import { Suspense } from "react";
+import { StoreProvider } from "@/store/provider";
 import "./globals.css";
+import "./ami.css";
 
-const manrope = Manrope({
-  variable: "--font-manrope",
+const bricolage = Bricolage_Grotesque({
+  variable: "--font-bricolage",
   subsets: ["latin", "latin-ext"],
+  weight: ["500", "600", "700", "800"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+const figtree = Figtree({
+  variable: "--font-figtree",
+  subsets: ["latin", "latin-ext"],
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
-  title: { default: "Àmì · License Nigerian creator videos", template: "%s · Àmì" },
-  description: "Creators list their videos. Pages and brands pay in naira for a licence, a clean file and a certificate anyone can check.",
+  title: { default: "Àmì · License videos from creators you love", template: "%s · Àmì" },
+  description: "Use their clips in your own content, legally. They get paid every time.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${manrope.variable} ${geistMono.variable} h-full antialiased`}>
+    <html lang="en" className={`${bricolage.variable} ${figtree.variable} h-full`}>
       <body className="min-h-full">
         <div className="root flex min-h-dvh flex-col">
-          <AuthProvider>
+          <StoreProvider>
             <Suspense fallback={<SiteHeaderFallback />}>
               <SiteHeader />
             </Suspense>
-            <main className="flex flex-1 flex-col">{children}</main>
-            <SiteFooter />
-          </AuthProvider>
+            <main className="app-main">{children}</main>
+            <Suspense fallback={null}>
+              <SiteFooter />
+            </Suspense>
+          </StoreProvider>
         </div>
       </body>
     </html>

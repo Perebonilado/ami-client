@@ -1,5 +1,5 @@
 import { connection, type NextRequest } from "next/server";
-import { db, effectiveStatus } from "@/lib/mock/db";
+import { db, effectiveStatus, videoSummary } from "@/lib/mock/db";
 import { json } from "@/lib/mock/http";
 import { normaliseLicenceNumber } from "@/lib/pricing";
 import type { LicenceCheck } from "@/lib/types";
@@ -25,12 +25,11 @@ export async function GET(_req: NextRequest, { params }: Ctx) {
     status: status === "active" ? "valid" : "expired",
     licence: {
       licenceNumber: l.licenceNumber,
-      video: { id: v.id, title: v.title, thumbnailUrl: v.thumbnailUrl, poster: v.poster, creatorName: creator.name },
+      video: videoSummary(v),
       creator: { name: creator.name, verified: creator.verified },
       buyer: { name: buyer.name, businessName: buyer.businessName },
-      useType: l.useType,
-      platform: l.platform,
-      coveredAccounts: l.coveredAccounts,
+      part: l.part,
+      duration: l.duration,
       startsAt: l.startsAt,
       endsAt: l.endsAt,
     },
